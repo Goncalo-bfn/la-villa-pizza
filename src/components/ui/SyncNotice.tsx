@@ -110,7 +110,13 @@ export function SyncNotice({
       </div>
 
       <div className="flex items-center justify-end gap-1">
-        <Button variant="outline" size="sm" onClick={onRetry} disabled={isRetrying}>
+        <Button
+          variant="outline"
+          size="sm"
+          className="min-h-11"
+          onClick={onRetry}
+          disabled={isRetrying}
+        >
           <RefreshCw className={cn(isRetrying && 'animate-spin')} />
           {isRetrying ? 'Tentando...' : 'Tentar novamente'}
         </Button>
@@ -118,6 +124,7 @@ export function SyncNotice({
           <Button
             variant="ghost"
             size="icon"
+            className="size-11"
             onClick={onDismiss}
             aria-label="Fechar aviso de sincronização"
           >

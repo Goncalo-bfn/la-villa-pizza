@@ -67,6 +67,7 @@ export function CheckoutForm({ customer, update, errors }: CheckoutFormProps) {
               key={option.id}
               type="button"
               onClick={() => update({ fulfillment: option.id })}
+              aria-pressed={selected}
               className={cn(
                 'flex flex-col items-center gap-1 rounded-xl border p-3 text-sm font-semibold transition-all',
                 selected
@@ -153,8 +154,9 @@ export function CheckoutForm({ customer, update, errors }: CheckoutFormProps) {
                   changeFor: option.id === 'dinheiro' ? customer.changeFor : undefined,
                 })
               }
+              aria-pressed={customer.payment === option.id}
               className={cn(
-                'rounded-xl border py-2.5 text-sm font-semibold transition-all',
+                'min-h-11 rounded-xl border py-2.5 text-sm font-semibold transition-all',
                 customer.payment === option.id
                   ? 'border-primary bg-primary/15'
                   : 'border-border text-muted-foreground',

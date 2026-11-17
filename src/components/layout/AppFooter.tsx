@@ -41,14 +41,14 @@ export function AppFooter() {
             href={buildWhatsAppUrl(settings.whatsapp)}
             target="_blank"
             rel="noopener noreferrer"
-            className="flex items-center gap-1.5 text-sm text-muted-foreground transition-colors hover:text-foreground"
+            className="inline-flex min-h-11 items-center gap-1.5 text-sm text-muted-foreground transition-colors hover:text-foreground"
           >
             <WhatsAppIcon className="size-4" />
             WhatsApp {formatPhone(settings.whatsapp)}
           </a>
           <Link
             to="/admin"
-            className="text-xs text-muted-foreground underline-offset-4 hover:underline"
+            className="inline-flex min-h-11 items-center text-xs text-muted-foreground underline-offset-4 hover:underline"
           >
             Área do lojista
           </Link>

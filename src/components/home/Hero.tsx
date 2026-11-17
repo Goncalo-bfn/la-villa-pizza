@@ -1,7 +1,6 @@
-import { ArrowDown, Bike, Crown, MessageCircle } from 'lucide-react';
+import { Bike, Crown, MessageCircle } from 'lucide-react';
 import { useMenu } from '@/context/MenuContext';
 import { HERO_IMAGE, LOGO_IMAGE } from '@/lib/assets';
-import { Button } from '@/components/ui/Button';
 
 export function Hero() {
   const { settings } = useMenu();
@@ -29,14 +28,6 @@ export function Hero() {
             Monte seu pedido em poucos toques e envie direto pelo WhatsApp. A gente prepara e leva
             até você.
           </p>
-
-          <div className="mt-8">
-            <Button asChild variant="hero" size="xl" className="w-full sm:w-auto">
-              <a href="#cardapio">
-                Ver cardápio <ArrowDown />
-              </a>
-            </Button>
-          </div>
 
           <ul className="mt-8 flex flex-wrap gap-x-6 gap-y-2 text-sm text-foreground/75">
             <li className="flex items-center gap-2">

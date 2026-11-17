@@ -105,6 +105,7 @@ export function ProductModal({ product, category, onClose }: ProductModalProps) 
                     key={size.id}
                     type="button"
                     onClick={() => setSizeId(size.id)}
+                    aria-pressed={selected}
                     className={cn(
                       'rounded-xl border p-3 text-left transition-all',
                       selected
@@ -135,6 +136,7 @@ export function ProductModal({ product, category, onClose }: ProductModalProps) 
                     key={borda.id}
                     type="button"
                     onClick={() => setBordaId(borda.id)}
+                    aria-pressed={selected}
                     className={cn(
                       'flex w-full items-center justify-between rounded-xl border px-4 py-3 text-left text-sm transition-all',
                       selected
@@ -185,7 +187,7 @@ export function ProductModal({ product, category, onClose }: ProductModalProps) 
           <button
             type="button"
             onClick={() => setQty((current) => Math.max(1, current - 1))}
-            className="grid size-10 place-items-center rounded-full bg-muted text-foreground transition-colors hover:bg-primary hover:text-primary-foreground active:scale-95"
+            className="grid size-11 place-items-center rounded-full bg-muted text-foreground transition-colors hover:bg-primary hover:text-primary-foreground active:scale-95"
             aria-label="Diminuir quantidade"
           >
             <Minus className="size-4" />
@@ -194,7 +196,7 @@ export function ProductModal({ product, category, onClose }: ProductModalProps) 
           <button
             type="button"
             onClick={() => setQty((current) => current + 1)}
-            className="grid size-10 place-items-center rounded-full bg-muted text-foreground transition-colors hover:bg-primary hover:text-primary-foreground active:scale-95"
+            className="grid size-11 place-items-center rounded-full bg-muted text-foreground transition-colors hover:bg-primary hover:text-primary-foreground active:scale-95"
             aria-label="Aumentar quantidade"
           >
             <Plus className="size-4" />

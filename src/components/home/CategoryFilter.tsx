@@ -19,6 +19,7 @@ export function CategoryFilter({ active, onChange }: CategoryFilterProps) {
           variant="chip"
           size="pill"
           data-active={active === 'all'}
+          aria-pressed={active === 'all'}
           onClick={() => onChange('all')}
           className="shrink-0"
         >
@@ -30,6 +31,7 @@ export function CategoryFilter({ active, onChange }: CategoryFilterProps) {
             variant="chip"
             size="pill"
             data-active={active === category.id}
+            aria-pressed={active === category.id}
             onClick={() => onChange(category.id)}
             className="shrink-0"
           >

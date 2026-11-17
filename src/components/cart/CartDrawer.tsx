@@ -75,7 +75,7 @@ function CartRow({
           <button
             type="button"
             onClick={onRemove}
-            className="text-muted-foreground transition-colors hover:text-destructive"
+            className="grid size-11 shrink-0 place-items-center rounded-full text-muted-foreground transition-colors hover:bg-muted hover:text-destructive"
             aria-label={`Remover ${item.name}`}
           >
             <Trash2 className="size-4" />
@@ -88,7 +88,7 @@ function CartRow({
             <button
               type="button"
               onClick={() => onQty(Math.max(0, item.qty - 1))}
-              className="grid size-7 place-items-center rounded-full bg-muted text-foreground transition-colors hover:bg-primary hover:text-primary-foreground active:scale-95"
+              className="grid size-11 place-items-center rounded-full bg-muted text-foreground transition-colors hover:bg-primary hover:text-primary-foreground active:scale-95"
               aria-label="Diminuir quantidade"
             >
               <Minus className="size-4" />
@@ -97,7 +97,7 @@ function CartRow({
             <button
               type="button"
               onClick={() => onQty(item.qty + 1)}
-              className="grid size-7 place-items-center rounded-full bg-muted text-foreground transition-colors hover:bg-primary hover:text-primary-foreground active:scale-95"
+              className="grid size-11 place-items-center rounded-full bg-muted text-foreground transition-colors hover:bg-primary hover:text-primary-foreground active:scale-95"
               aria-label="Aumentar quantidade"
             >
               <Plus className="size-4" />
@@ -217,7 +217,7 @@ export function CartDrawer({ open, onOpenChange }: CartDrawerProps) {
           <button
             type="button"
             onClick={() => setStep('cart')}
-            className="grid size-8 shrink-0 place-items-center rounded-full transition-colors hover:bg-muted"
+            className="grid size-11 shrink-0 place-items-center rounded-full transition-colors hover:bg-muted"
             aria-label="Voltar ao carrinho"
           >
             <ArrowLeft className="size-4" />
@@ -247,7 +247,7 @@ export function CartDrawer({ open, onOpenChange }: CartDrawerProps) {
               Abrir WhatsApp novamente
             </a>
           </Button>
-          <Button variant="ghost" onClick={() => handleOpenChange(false)}>
+          <Button variant="ghost" className="min-h-11" onClick={() => handleOpenChange(false)}>
             Voltar ao cardápio
           </Button>
         </div>
@@ -260,7 +260,7 @@ export function CartDrawer({ open, onOpenChange }: CartDrawerProps) {
           <p className="text-sm text-muted-foreground">
             Escolha uma pizza no cardápio para começar.
           </p>
-          <Button variant="hero" onClick={() => handleOpenChange(false)} className="mt-2">
+          <Button variant="hero" onClick={() => handleOpenChange(false)} className="mt-2 min-h-11">
             Ver cardápio
           </Button>
         </div>

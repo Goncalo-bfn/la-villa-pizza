@@ -38,7 +38,7 @@ export function AppHeader({ onOpenCart }: AppHeaderProps) {
         <Link
           to="/"
           onClick={handleLogoTap}
-          className="flex touch-manipulation items-center gap-2.5 select-none"
+          className="flex min-h-11 touch-manipulation items-center gap-2.5 select-none"
           aria-label={`${settings.storeName} — início`}
         >
           <img

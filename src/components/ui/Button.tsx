@@ -42,7 +42,7 @@ const sizeClasses: Record<ButtonSize, string> = {
   lg: 'h-10 rounded-md px-8',
   icon: 'h-9 w-9',
   xl: 'h-12 rounded-xl px-6 text-base',
-  pill: 'h-9 rounded-full px-4',
+  pill: 'h-11 rounded-full px-4',
 };
 
 export function buttonClasses({
