@@ -1,0 +1,155 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --radius: 0.875rem;
+    --cream: 96% 0.025 85;
+    --background: 16.5% 0.014 45;
+    --foreground: 95% 0.022 85;
+    --card: 21.5% 0.018 45;
+    --card-foreground: 95% 0.022 85;
+    --popover: 20% 0.017 45;
+    --popover-foreground: 95% 0.022 85;
+    --primary: 58.5% 0.215 27;
+    --primary-glow: 66% 0.2 35;
+    --primary-foreground: 98% 0.012 85;
+    --secondary: 50% 0.13 148;
+    --secondary-foreground: 98% 0.012 85;
+    --muted: 25.5% 0.018 45;
+    --muted-foreground: 74% 0.03 75;
+    --accent: 84% 0.155 88;
+    --accent-foreground: 20% 0.02 45;
+    --destructive: 62% 0.22 25;
+    --destructive-foreground: 98% 0.012 85;
+    --whatsapp: 70% 0.17 150;
+    --whatsapp-foreground: 99% 0 0;
+    --success: 70% 0.15 150;
+    --border: 31% 0.022 45;
+    --input: 34% 0.022 45;
+    --ring: 66% 0.2 35;
+    --wood-grain: repeating-linear-gradient(
+        92deg,
+        oklch(100% 0 0 / 0.012) 0 2px,
+        transparent 2px 9px,
+        oklch(0% 0 0 / 0.05) 9px 10px,
+        transparent 10px 23px
+      ),
+      radial-gradient(120% 60% at 50% 0%, oklch(24% 0.03 45 / 0.7), transparent 70%);
+    color-scheme: dark;
+  }
+
+  .theme-admin {
+    --background: 97.5% 0.008 85;
+    --foreground: 24% 0.02 45;
+    --card: 100% 0 0;
+    --card-foreground: 24% 0.02 45;
+    --popover: 100% 0 0;
+    --popover-foreground: 24% 0.02 45;
+    --primary: 56% 0.21 27;
+    --primary-glow: 63% 0.2 35;
+    --primary-foreground: 99% 0.005 85;
+    --secondary: 94% 0.03 148;
+    --secondary-foreground: 36% 0.1 148;
+    --muted: 95% 0.008 85;
+    --muted-foreground: 50% 0.02 60;
+    --accent: 95% 0.035 88;
+    --accent-foreground: 30% 0.04 60;
+    --success: 55% 0.14 150;
+    --border: 90% 0.01 80;
+    --input: 88% 0.012 80;
+    --ring: 56% 0.21 27;
+    --wood-grain: none;
+    color-scheme: light;
+  }
+
+  * {
+    @apply border-border;
+  }
+
+  html {
+    scroll-behavior: smooth;
+  }
+
+  body {
+    @apply bg-background font-sans text-foreground antialiased;
+    min-height: 100vh;
+  }
+
+  button,
+  input,
+  textarea,
+  select {
+    font: inherit;
+  }
+
+  input[type='number']::-webkit-outer-spin-button,
+  input[type='number']::-webkit-inner-spin-button {
+    -webkit-appearance: none;
+    margin: 0;
+  }
+
+  input[type='number'] {
+    -moz-appearance: textfield;
+  }
+
+  ::selection {
+    background: oklch(var(--accent) / 0.35);
+  }
+}
+
+@layer utilities {
+  .bg-wood {
+    background-color: oklch(var(--background));
+    background-image: var(--wood-grain);
+  }
+
+  .no-scrollbar {
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+  }
+
+  .no-scrollbar::-webkit-scrollbar {
+    display: none;
+  }
+
+  .text-balance {
+    text-wrap: balance;
+  }
+
+  .safe-bottom {
+    padding-bottom: max(1rem, env(safe-area-inset-bottom));
+  }
+}
+
+/* Scrollbar discreetly styled for the cart and admin panels */
+* {
+  scrollbar-width: thin;
+  scrollbar-color: oklch(var(--border)) transparent;
+}
+
+*::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+*::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+*::-webkit-scrollbar-thumb {
+  background: oklch(var(--border));
+  border-radius: 999px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
