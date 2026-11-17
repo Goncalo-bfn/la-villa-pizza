@@ -32,6 +32,7 @@ interface MenuContextValue {
   settings: Settings;
   isLoading: boolean;
   syncError: string | null;
+  syncIssue: MenuSyncIssue | null;
   clearSyncError: () => void;
   reloadMenu: () => Promise<boolean>;
   saveCategory: (category: Category) => Promise<boolean>;
@@ -46,15 +47,33 @@ interface MenuContextValue {
 
 const MenuContext = createContext<MenuContextValue | null>(null);
 
+export type MenuSyncIssue = 'schema' | 'config' | 'network' | 'unknown';
+
 function describeError(error: unknown) {
   if (error instanceof Error) return error.message;
   return 'Não foi possível sincronizar o cardápio com o Supabase.';
+}
+
+function classifyError(error: unknown): MenuSyncIssue {
+  const message = describeError(error);
+
+  if (/schema cache|Could not find the table|PGRST205|relation .* does not exist/i.test(message)) {
+    return 'schema';
+  }
+  if (/Supabase não configurado|VITE_SUPABASE/i.test(message)) {
+    return 'config';
+  }
+  if (/Failed to fetch|NetworkError|fetch failed|Load failed|network/i.test(message)) {
+    return 'network';
+  }
+  return 'unknown';
 }
 
 export function MenuProvider({ children }: { children: ReactNode }) {
   const [menu, setMenu] = useState<MenuState>(() => defaultMenuSnapshot());
   const [isLoading, setIsLoading] = useState(true);
   const [syncError, setSyncError] = useState<string | null>(null);
+  const [syncIssue, setSyncIssue] = useState<MenuSyncIssue | null>(null);
   const menuRef = useRef(menu);
 
   const commitMenu = useCallback((next: MenuState) => {
@@ -71,10 +90,12 @@ export function MenuProvider({ children }: { children: ReactNode }) {
         if (!active) return;
         commitMenu(loaded);
         setSyncError(null);
+        setSyncIssue(null);
       })
       .catch((error: unknown) => {
         if (!active) return;
         setSyncError(describeError(error));
+        setSyncIssue(classifyError(error));
       })
       .finally(() => {
         if (active) setIsLoading(false);
@@ -93,10 +114,12 @@ export function MenuProvider({ children }: { children: ReactNode }) {
       try {
         await action();
         setSyncError(null);
+        setSyncIssue(null);
         return true;
       } catch (error) {
         commitMenu(previous);
         setSyncError(describeError(error));
+        setSyncIssue(classifyError(error));
         return false;
       }
     },
@@ -109,16 +132,21 @@ export function MenuProvider({ children }: { children: ReactNode }) {
       const loaded = await fetchMenuData();
       commitMenu(loaded);
       setSyncError(null);
+      setSyncIssue(null);
       return true;
     } catch (error) {
       setSyncError(describeError(error));
+      setSyncIssue(classifyError(error));
       return false;
     } finally {
       setIsLoading(false);
     }
   }, [commitMenu]);
 
-  const clearSyncError = useCallback(() => setSyncError(null), []);
+  const clearSyncError = useCallback(() => {
+    setSyncError(null);
+    setSyncIssue(null);
+  }, []);
 
   const saveCategory = useCallback(
     async (category: Category) => {
@@ -248,6 +276,7 @@ export function MenuProvider({ children }: { children: ReactNode }) {
       settings: menu.settings,
       isLoading,
       syncError,
+      syncIssue,
       clearSyncError,
       reloadMenu,
       saveCategory,
@@ -263,6 +292,7 @@ export function MenuProvider({ children }: { children: ReactNode }) {
       menu,
       isLoading,
       syncError,
+      syncIssue,
       clearSyncError,
       reloadMenu,
       saveCategory,

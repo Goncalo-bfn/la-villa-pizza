@@ -1,17 +1,14 @@
 import { useLayoutEffect, useState } from 'react';
 import {
-  AlertTriangle,
   ArrowLeft,
   ClipboardList,
   DollarSign,
   Lock,
   LogOut,
   Pizza,
-  RefreshCw,
   Settings as SettingsIcon,
   Store,
   Tags,
-  X,
 } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { STORAGE_KEYS } from '@/data/seed';
@@ -23,6 +20,7 @@ import { formatCurrency, isToday } from '@/lib/utils';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
 import { Switch } from '@/components/ui/Switch';
+import { SyncNotice } from '@/components/ui/SyncNotice';
 import { CategoriesManager } from '@/components/admin/CategoriesManager';
 import { OrdersManager } from '@/components/admin/OrdersManager';
 import { ProductsManager } from '@/components/admin/ProductsManager';
@@ -127,6 +125,7 @@ function AdminDashboard({ onLogout }: { onLogout: () => void }) {
     saveSettings,
     isLoading,
     syncError,
+    syncIssue,
     clearSyncError,
     reloadMenu,
   } = useMenu();
@@ -161,7 +160,11 @@ function AdminDashboard({ onLogout }: { onLogout: () => void }) {
                 Painel {settings.storeName}
               </p>
               <p className="text-xs text-muted-foreground">
-                {isLoading ? 'Sincronizando cardápio...' : 'Gestão do cardápio'}
+                {isLoading
+                  ? 'Sincronizando cardápio...'
+                  : syncError
+                    ? 'Sincronização pendente'
+                    : 'Gestão do cardápio'}
               </p>
             </div>
           </div>
@@ -182,31 +185,16 @@ function AdminDashboard({ onLogout }: { onLogout: () => void }) {
       </header>
 
       <main className="mx-auto max-w-6xl px-4 py-6">
-        {syncError && (
-          <div className="mb-4 flex flex-wrap items-start gap-3 rounded-2xl border border-destructive/30 bg-destructive/10 p-3 text-sm text-destructive">
-            <AlertTriangle className="mt-0.5 size-4 shrink-0" />
-            <p className="min-w-0 flex-1">{syncError}</p>
-            <div className="flex items-center gap-1">
-              <Button
-                variant="ghost"
-                size="sm"
-                className="text-destructive hover:bg-destructive/10 hover:text-destructive"
-                onClick={() => void reloadMenu()}
-                disabled={isLoading}
-              >
-                <RefreshCw /> Tentar novamente
-              </Button>
-              <Button
-                variant="ghost"
-                size="icon"
-                className="text-destructive hover:bg-destructive/10 hover:text-destructive"
-                onClick={clearSyncError}
-                aria-label="Fechar aviso de sincronização"
-              >
-                <X />
-              </Button>
-            </div>
-          </div>
+        {syncError && syncIssue && (
+          <SyncNotice
+            className="mb-4"
+            variant="admin"
+            issue={syncIssue}
+            message={syncError}
+            isRetrying={isLoading}
+            onRetry={() => void reloadMenu()}
+            onDismiss={clearSyncError}
+          />
         )}
 
         <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
