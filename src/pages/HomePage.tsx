@@ -1,5 +1,5 @@
 import { useMemo, useState } from 'react';
-import { Loader2, Pizza } from 'lucide-react';
+import { Loader2 } from 'lucide-react';
 import { useMenu } from '@/context/MenuContext';
 import { AppHeader } from '@/components/layout/AppHeader';
 import { AppFooter } from '@/components/layout/AppFooter';
@@ -7,10 +7,8 @@ import { Hero } from '@/components/home/Hero';
 import { CategoryFilter } from '@/components/home/CategoryFilter';
 import { CategorySection } from '@/components/home/CategorySection';
 import { ProductModal } from '@/components/home/ProductModal';
-import { HalfPizzaModal } from '@/components/home/HalfPizzaModal';
 import { CartDrawer } from '@/components/cart/CartDrawer';
 import { FloatingCartBar } from '@/components/cart/FloatingCartBar';
-import { Button } from '@/components/ui/Button';
 import { SyncNotice } from '@/components/ui/SyncNotice';
 import type { Product } from '@/types';
 
@@ -27,27 +25,6 @@ export function HomePage() {
   const [activeCategory, setActiveCategory] = useState('all');
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
   const [cartOpen, setCartOpen] = useState(false);
-  const [halfPizzaOpen, setHalfPizzaOpen] = useState(false);
-
-  const pizzaFlavors = useMemo(
-    () =>
-      products.filter((product) => {
-        const productCategory = categories.find(
-          (category) => category.id === product.categoryId,
-        );
-        return product.available && productCategory?.kind === 'pizza';
-      }),
-    [products, categories],
-  );
-
-  const activeCategoryKind =
-    activeCategory === 'all'
-      ? 'all'
-      : categories.find((category) => category.id === activeCategory)?.kind;
-
-  const showHalfPizzaCta =
-    pizzaFlavors.length >= 2 &&
-    (activeCategoryKind === 'all' || activeCategoryKind === 'pizza');
 
   const sections = useMemo(
     () =>
@@ -93,26 +70,6 @@ export function HomePage() {
 
         <CategoryFilter active={activeCategory} onChange={setActiveCategory} />
 
-        {showHalfPizzaCta && (
-          <div className="mt-5 flex flex-col gap-3 rounded-2xl border border-primary/30 bg-card/70 p-4 shadow-card sm:flex-row sm:items-center sm:justify-between">
-            <div>
-              <p className="font-display text-lg font-bold">Monte sua pizza meio a meio</p>
-              <p className="text-sm text-muted-foreground">
-                Escolha 2 sabores e pague o valor do mais caro.
-              </p>
-            </div>
-            <Button
-              variant="hero"
-              size="xl"
-              className="w-full sm:w-auto"
-              onClick={() => setHalfPizzaOpen(true)}
-            >
-              <Pizza />
-              Montar Meio a Meio
-            </Button>
-          </div>
-        )}
-
         {sections.map(({ category, products: categoryProducts }) => (
           <CategorySection
             key={category.id}
@@ -154,7 +111,6 @@ export function HomePage() {
         category={selectedCategory}
         onClose={() => setSelectedProduct(null)}
       />
-      <HalfPizzaModal open={halfPizzaOpen} onClose={() => setHalfPizzaOpen(false)} />
       <CartDrawer open={cartOpen} onOpenChange={setCartOpen} />
     </div>
   );
