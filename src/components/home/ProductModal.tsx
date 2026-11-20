@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { Check, Minus, Plus } from 'lucide-react';
+import { Check, Minus, Pizza, Plus } from 'lucide-react';
 import type { CartFlavor, Category, Product } from '@/types';
 import { useMenu } from '@/context/MenuContext';
 import { useCart } from '@/context/CartContext';
@@ -90,10 +90,10 @@ export function ProductModal({ product, category, onClose }: ProductModalProps) 
   const actionLabel =
     isPizza && halfMode
       ? !secondFlavor
-        ? 'Escolha o 2º sabor'
+        ? 'Escolha a 2ª metade'
         : availableSizes.length === 0
           ? 'Sem tamanho em comum'
-          : `Adicionar · ${formatCurrency(total)}`
+          : `Adicionar 2 metades · ${formatCurrency(total)}`
       : `Adicionar · ${formatCurrency(total)}`;
 
   const handleHalfToggle = (next: boolean) => {
@@ -115,8 +115,8 @@ export function ProductModal({ product, category, onClose }: ProductModalProps) 
     const flavors: [CartFlavor, CartFlavor] | undefined =
       isHalf && secondFlavor
         ? [
-            { productId: product.id, name: product.name },
-            { productId: secondFlavor.id, name: secondFlavor.name },
+            { productId: product.id, name: `1/2 ${product.name}` },
+            { productId: secondFlavor.id, name: `1/2 ${secondFlavor.name}` },
           ]
         : undefined;
 
@@ -142,7 +142,9 @@ export function ProductModal({ product, category, onClose }: ProductModalProps) 
     <Modal
       open={Boolean(product)}
       onClose={onClose}
-      ariaLabel={`Adicionar ${product.name}`}
+      ariaLabel={
+        isPizza ? `Monte sua pizza (2 sabores): ${product.name}` : `Adicionar ${product.name}`
+      }
       className="sm:max-w-md"
     >
       <div className="relative aspect-[16/10] w-full overflow-hidden rounded-t-3xl sm:rounded-t-3xl">
@@ -152,8 +154,34 @@ export function ProductModal({ product, category, onClose }: ProductModalProps) 
 
       <div className="space-y-6 p-5 pt-4">
         <div>
+          {isPizza && (
+            <p className="mb-1 flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wide text-primary">
+              <Pizza className="size-3.5" aria-hidden="true" />
+              Monte sua pizza (2 sabores)
+            </p>
+          )}
           <h2 className="font-display text-2xl font-bold">{product.name}</h2>
           <p className="mt-1 text-sm text-muted-foreground">{product.description}</p>
+          {isPizza && (
+            <div className="mt-2 flex flex-wrap items-center gap-1.5 text-xs">
+              {halfMode ? (
+                <>
+                  <span className="rounded-full bg-primary/15 px-2 py-1 font-semibold text-primary">
+                    1/2 {product.name}
+                  </span>
+                  {secondFlavor && (
+                    <span className="rounded-full bg-accent/15 px-2 py-1 font-semibold text-accent">
+                      1/2 {secondFlavor.name}
+                    </span>
+                  )}
+                </>
+              ) : (
+                <span className="text-muted-foreground">
+                  Pizza inteira. Ative o meio a meio para dividir em 2 metades.
+                </span>
+              )}
+            </div>
+          )}
           {!isPizza && (
             <p className="mt-2 text-lg font-bold text-accent">{formatCurrency(product.price ?? 0)}</p>
           )}
@@ -193,7 +221,7 @@ export function ProductModal({ product, category, onClose }: ProductModalProps) 
             </div>
             {isHalf && secondFlavor && (
               <p className="mt-2 text-xs text-muted-foreground">
-                Mostrando apenas os tamanhos disponíveis para os dois sabores.
+                Tamanhos válidos para as duas metades. O preço é da pizza inteira (1/2 + 1/2).
               </p>
             )}
           </fieldset>
@@ -208,9 +236,9 @@ export function ProductModal({ product, category, onClose }: ProductModalProps) 
             className="flex min-h-11 w-full items-center justify-between gap-4 rounded-xl border border-border bg-background/40 px-4 py-3 text-left transition-colors hover:border-primary/50 hover:bg-primary/5"
           >
             <span>
-              <span className="block text-sm font-semibold">Meio a meio</span>
+              <span className="block text-sm font-semibold">Meio a meio (2 metades)</span>
               <span className="block text-xs text-muted-foreground">
-                Escolha um segundo sabor e pague o valor do mais caro.
+                Cada sabor vale 1/2 da pizza. Você paga o valor do mais caro + borda.
               </span>
             </span>
             <span
@@ -233,10 +261,10 @@ export function ProductModal({ product, category, onClose }: ProductModalProps) 
         {isPizza && halfMode && (
           <div className="space-y-3">
             <div>
-              <p className="text-sm font-semibold">Escolha o segundo sabor</p>
+              <p className="text-sm font-semibold">Escolha a 2ª metade (1/2)</p>
               <p className="mt-0.5 text-xs text-muted-foreground">
-                O primeiro sabor é <span className="font-medium">{product.name}</span>. Toque em
-                outro sabor para combinar.
+                A 1ª metade é <span className="font-medium">1/2 {product.name}</span>. Toque em
+                outro sabor para completar a pizza.
               </p>
             </div>
 
@@ -256,15 +284,15 @@ export function ProductModal({ product, category, onClose }: ProductModalProps) 
                     key={flavor.id}
                     type="button"
                     role="checkbox"
-                    aria-checked={selected}
+                    aria-checked={isFirst || selected}
                     aria-disabled={isFirst}
                     disabled={isFirst}
                     aria-label={
                       isFirst
-                        ? `${flavor.name}, já escolhido como primeiro sabor`
+                        ? `1/2 ${flavor.name}, já escolhido como primeira metade`
                         : selected
-                          ? `${flavor.name}, segundo sabor selecionado. Toque para remover.`
-                          : `Escolher ${flavor.name} como segundo sabor`
+                          ? `1/2 ${flavor.name}, segunda metade selecionada. Toque para remover.`
+                          : `Escolher 1/2 ${flavor.name} como segunda metade`
                     }
                     onClick={() => selectSecondFlavor(flavor.id)}
                     className={cn(
@@ -286,14 +314,14 @@ export function ProductModal({ product, category, onClose }: ProductModalProps) 
                           event.currentTarget.src = FALLBACK_PRODUCT_IMAGE;
                         }}
                       />
-                      {selected && (
-                        <span className="absolute right-1 top-1 grid size-5 place-items-center rounded-full border border-primary bg-primary text-primary-foreground ring-1 ring-background">
-                          <Check className="size-3" aria-hidden="true" />
+                      {(isFirst || selected) && (
+                        <span className="absolute right-1 top-1 grid h-5 min-w-6 place-items-center rounded-full border border-primary bg-primary px-1 text-[9px] font-bold leading-none text-primary-foreground ring-1 ring-background">
+                          1/2
                         </span>
                       )}
-                      {isFirst && (
+                      {(isFirst || selected) && (
                         <span className="absolute inset-x-1 bottom-1 rounded bg-background/85 py-0.5 text-[10px] font-semibold">
-                          1º sabor
+                          {isFirst ? '1ª metade' : '2ª metade'}
                         </span>
                       )}
                     </div>
@@ -312,18 +340,18 @@ export function ProductModal({ product, category, onClose }: ProductModalProps) 
 
             <div className="rounded-xl border border-border bg-background/50 p-3">
               <p className="text-xs font-medium text-muted-foreground">
-                Preço por pizza (maior sabor + borda cobrada uma vez)
+                Preço da pizza inteira (1/2 + 1/2): maior sabor + borda cobrada uma vez
               </p>
               <p className="mt-1 text-sm leading-relaxed">
                 {!secondFlavor ? (
-                  'Selecione o segundo sabor para ver o preço.'
+                  'Escolha a 2ª metade (1/2) para ver o preço.'
                 ) : availableSizes.length === 0 ? (
-                  'Esses sabores não têm tamanho em comum. Escolha outro sabor.'
+                  'Esses sabores não têm tamanho em comum. Escolha outra 2ª metade.'
                 ) : (
                   <>
-                    <span className="font-semibold">{product.name}</span>
+                    <span className="font-semibold">1/2 {product.name}</span>
                     <span className="text-muted-foreground"> + </span>
-                    <span className="font-semibold">{secondFlavor.name}</span>
+                    <span className="font-semibold">1/2 {secondFlavor.name}</span>
                     <span className="text-muted-foreground"> → </span>
                     <span className="font-bold text-accent">
                       Você paga: {formatCurrency(unitPrice)}
@@ -331,6 +359,11 @@ export function ProductModal({ product, category, onClose }: ProductModalProps) 
                   </>
                 )}
               </p>
+              {secondFlavor && availableSizes.length > 0 && (
+                <p className="mt-1 text-[11px] text-muted-foreground">
+                  2 metades = 1 pizza inteira
+                </p>
+              )}
             </div>
 
             {secondFlavor && availableSizes.length === 0 && (
