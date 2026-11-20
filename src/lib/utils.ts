@@ -1,6 +1,7 @@
 import { clsx, type ClassValue } from 'clsx';
 import { twMerge } from 'tailwind-merge';
-import type { CartItem, Category, Product, Settings } from '@/types';
+import { TAXA_SERVICO } from '@/config/fees';
+import type { CartItem, CartTotals, Category, Product, Settings } from '@/types';
 
 export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
@@ -72,6 +73,17 @@ export function getUnitPrice(
   return roundMoney(base + (category?.kind === 'pizza' && border ? border.price : 0));
 }
 
+export function getHalfPizzaUnitPrice(
+  first: Product | undefined,
+  second: Product | undefined,
+  sizeId: string | undefined,
+  border: { price: number } | undefined,
+) {
+  const firstPrice = first?.sizePrices?.[sizeId ?? ''] ?? 0;
+  const secondPrice = second?.sizePrices?.[sizeId ?? ''] ?? 0;
+  return roundMoney(Math.max(firstPrice, secondPrice) + (border?.price ?? 0));
+}
+
 export function getCartSubtotal(items: CartItem[]) {
   return roundMoney(items.reduce((total, item) => total + item.unitPrice * item.qty, 0));
 }
@@ -80,13 +92,16 @@ export function getCartTotals(
   items: CartItem[],
   fulfillment: 'entrega' | 'retirada',
   deliveryFee: number,
-) {
+): CartTotals {
   const subtotal = getCartSubtotal(items);
-  const fee = fulfillment === 'entrega' && items.length > 0 ? roundMoney(deliveryFee) : 0;
+  const hasItems = items.length > 0;
+  const fee = fulfillment === 'entrega' && hasItems ? roundMoney(deliveryFee) : 0;
+  const serviceFee = hasItems ? roundMoney(TAXA_SERVICO) : 0;
   return {
     subtotal,
+    serviceFee,
     deliveryFee: fee,
-    total: roundMoney(subtotal + fee),
+    total: roundMoney(subtotal + fee + serviceFee),
   };
 }
 
@@ -95,7 +110,8 @@ export function getCartCount(items: CartItem[]) {
 }
 
 export function describeCartItem(item: CartItem) {
-  return [item.sizeName, item.bordaName].filter(Boolean).join(' · ');
+  const flavors = item.flavors?.map((flavor) => flavor.name).join(' + ');
+  return [flavors, item.sizeName, item.bordaName].filter(Boolean).join(' · ');
 }
 
 export function getDefaultSizeId(settings: Settings, product: Product) {

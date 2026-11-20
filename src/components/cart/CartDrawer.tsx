@@ -168,6 +168,7 @@ export function CartDrawer({ open, onOpenChange }: CartDrawerProps) {
       items,
       customer: orderCustomer,
       subtotal: totals.subtotal,
+      serviceFee: totals.serviceFee,
       deliveryFee: totals.deliveryFee,
       total: totals.total,
     });
@@ -292,6 +293,9 @@ export function CartDrawer({ open, onOpenChange }: CartDrawerProps) {
               <SummaryRow label="Subtotal" value={formatCurrency(totals.subtotal)} />
               {customer.fulfillment === 'entrega' && (
                 <SummaryRow label="Taxa de entrega" value={formatCurrency(totals.deliveryFee)} />
+              )}
+              {totals.serviceFee > 0 && (
+                <SummaryRow label="Taxa da plataforma" value={formatCurrency(totals.serviceFee)} />
               )}
               <div className="flex items-center justify-between pt-1 text-lg font-bold">
                 <span>Total</span>

@@ -44,6 +44,9 @@ export function formatOrderMessage(order: Order, storeName: string) {
   if (customer.fulfillment === 'entrega') {
     lines.push(`Entrega: ${formatCurrency(order.deliveryFee)}`);
   }
+  if (order.serviceFee > 0) {
+    lines.push(`Taxa da plataforma: ${formatCurrency(order.serviceFee)}`);
+  }
   lines.push(`*Total: ${formatCurrency(order.total)}*`);
   lines.push('');
   lines.push(`*Cliente:* ${customer.name}`);

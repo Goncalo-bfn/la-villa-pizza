@@ -24,6 +24,10 @@ interface CartContextValue {
 
 const CartContext = createContext<CartContextValue | null>(null);
 
+function flavorKey(flavors: CartItem['flavors']) {
+  return flavors?.map((flavor) => flavor.productId).sort().join('|') ?? '';
+}
+
 export function CartProvider({ children }: { children: ReactNode }) {
   const [items, setItems] = useState<CartItem[]>(() =>
     readStorage<CartItem[]>(STORAGE_KEYS.cart, []),
@@ -38,6 +42,7 @@ export function CartProvider({ children }: { children: ReactNode }) {
       const existing = current.find(
         (item) =>
           item.productId === input.productId &&
+          flavorKey(item.flavors) === flavorKey(input.flavors) &&
           item.sizeId === input.sizeId &&
           item.bordaId === input.bordaId &&
           (item.note ?? '') === (input.note ?? '') &&

@@ -51,10 +51,17 @@ export interface MenuState {
   settings: Settings;
 }
 
+export interface CartFlavor {
+  productId: string;
+  name: string;
+}
+
 export interface CartItem {
   id: string;
   productId: string;
   name: string;
+  /** Presente apenas em pizzas meio a meio, sempre com 2 sabores. */
+  flavors?: [CartFlavor, CartFlavor];
   sizeId?: string;
   sizeName?: string;
   bordaId?: string;
@@ -90,12 +97,14 @@ export interface Order {
   items: CartItem[];
   customer: Customer;
   subtotal: number;
+  serviceFee: number;
   deliveryFee: number;
   total: number;
 }
 
 export interface CartTotals {
   subtotal: number;
+  serviceFee: number;
   deliveryFee: number;
   total: number;
 }
@@ -103,6 +112,8 @@ export interface CartTotals {
 export interface AddToCartInput {
   productId: string;
   name: string;
+  /** Presente apenas em pizzas meio a meio, sempre com 2 sabores. */
+  flavors?: [CartFlavor, CartFlavor];
   sizeId?: string;
   sizeName?: string;
   bordaId?: string;

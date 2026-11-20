@@ -1,8 +1,9 @@
 import { createPortal } from 'react-dom';
 import { X } from 'lucide-react';
-import type { ReactNode } from 'react';
+import { useRef, type ReactNode } from 'react';
 import { cn } from '@/lib/utils';
 import { useEscape, useLockBody } from '@/hooks/useLockBody';
+import { useFocusTrap } from '@/hooks/useFocusTrap';
 
 interface BaseSheetProps {
   open: boolean;
@@ -31,8 +32,10 @@ export function Drawer({
   ariaLabel = 'Painel',
   showClose = true,
 }: BaseSheetProps) {
+  const dialogRef = useRef<HTMLElement>(null);
   useLockBody(open);
   useEscape(open, onClose);
+  useFocusTrap(open, dialogRef);
 
   if (!open) return null;
 
@@ -40,6 +43,8 @@ export function Drawer({
     <div className="fixed inset-0 z-50">
       <Overlay onClose={onClose} />
       <aside
+        ref={dialogRef}
+        tabIndex={-1}
         role="dialog"
         aria-modal="true"
         aria-label={ariaLabel}
@@ -73,8 +78,10 @@ export function Modal({
   ariaLabel = 'Janela',
   showClose = true,
 }: BaseSheetProps) {
+  const dialogRef = useRef<HTMLDivElement>(null);
   useLockBody(open);
   useEscape(open, onClose);
+  useFocusTrap(open, dialogRef);
 
   if (!open) return null;
 
@@ -82,6 +89,8 @@ export function Modal({
     <div className="fixed inset-0 z-50">
       <Overlay onClose={onClose} />
       <div
+        ref={dialogRef}
+        tabIndex={-1}
         role="dialog"
         aria-modal="true"
         aria-label={ariaLabel}
