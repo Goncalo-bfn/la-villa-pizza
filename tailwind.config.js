@@ -67,7 +67,7 @@ export default {
       },
       backgroundImage: {
         'gradient-primary':
-          'linear-gradient(135deg, oklch(var(--primary)), oklch(var(--primary-glow)))',
+          'linear-gradient(135deg, oklch(var(--primary)), oklch(48% 0.215 27))',
         'hero-overlay':
           'linear-gradient(90deg, oklch(13% 0.012 45 / 0.96) 0%, oklch(13% 0.012 45 / 0.82) 40%, oklch(13% 0.012 45 / 0.25) 75%, oklch(13% 0.012 45 / 0.1) 100%)',
         'hero-fade':

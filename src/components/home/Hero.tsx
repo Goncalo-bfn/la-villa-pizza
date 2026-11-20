@@ -12,6 +12,7 @@ export function Hero() {
         alt="Pizza saindo do forno"
         width={1920}
         height={1088}
+          fetchPriority="high"
         className="absolute inset-0 -z-20 size-full object-cover object-[70%_center]"
       />
       <div className="absolute inset-0 -z-10 bg-hero-overlay" />

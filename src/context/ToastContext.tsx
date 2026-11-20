@@ -59,7 +59,7 @@ export function ToastProvider({ children }: { children: ReactNode }) {
       {children}
       <div
         className={cn(
-          'pointer-events-none fixed inset-x-0 z-[100] flex flex-col items-center gap-2 px-4 transition-all duration-300',
+          'pointer-events-none fixed inset-x-0 z-40 flex flex-col items-center gap-2 px-4 transition-all duration-300',
           count > 0 ? 'bottom-28' : 'bottom-6',
         )}
       >
@@ -86,10 +86,10 @@ export function ToastProvider({ children }: { children: ReactNode }) {
               <button
                 type="button"
                 onClick={() => dismiss(toast.id)}
-                className="text-muted-foreground transition-colors hover:text-foreground"
+                className="p-1.5 text-muted-foreground transition-colors hover:text-foreground"
                 aria-label="Fechar aviso"
               >
-                <X className="size-4" />
+                <X className="size-6" />
               </button>
             </div>
           );
