@@ -44,6 +44,7 @@ function App() {
   const [cartOpen, setCartOpen] = useState(false);
   const [checkoutOpen, setCheckoutOpen] = useState(false);
   const [checkoutError, setCheckoutError] = useState("");
+  const [confirmClearOpen, setConfirmClearOpen] = useState(false);
   const [details, setDetails] = useState<CheckoutDetails>({
     name: "",
     phone: "",
@@ -265,6 +266,12 @@ function App() {
 
   function removeItem(item: CartItem) {
     setCart((current) => current.filter((cartItem) => cartItem.id !== item.id));
+  }
+
+  function handleClearCart() {
+    setCart([]);
+    setCheckoutError("");
+    setConfirmClearOpen(false);
   }
 
   function sendOrder(event: FormEvent<HTMLFormElement>) {
@@ -565,6 +572,13 @@ function App() {
                 >
                   Continuar para o pedido
                 </button>
+                <button
+                  className="clear-cart-button"
+                  type="button"
+                  onClick={() => setConfirmClearOpen(true)}
+                >
+                  🗑️ Limpar Carrinho
+                </button>
               </>
             )}
           </section>
@@ -661,6 +675,53 @@ function App() {
               </button>
               <p className="checkout-note">O pedido será enviado para confirmação pela pizzaria.</p>
             </form>
+          </section>
+        </div>
+      )}
+
+      {confirmClearOpen && (
+        <div
+          className="modal-backdrop confirm-modal-backdrop"
+          onMouseDown={() => setConfirmClearOpen(false)}
+        >
+          <section
+            className="confirm-dialog"
+            role="alertdialog"
+            aria-modal="true"
+            aria-labelledby="confirm-clear-title"
+            onMouseDown={(event) => event.stopPropagation()}
+          >
+            <div className="dialog-heading">
+              <div>
+                <p className="eyebrow">Atenção</p>
+                <h2 id="confirm-clear-title">Limpar carrinho</h2>
+              </div>
+              <button
+                className="icon-button"
+                type="button"
+                aria-label="Fechar"
+                onClick={() => setConfirmClearOpen(false)}
+              >
+                ×
+              </button>
+            </div>
+            <p className="confirm-message">Tem certeza que deseja limpar o carrinho?</p>
+            <div className="confirm-actions">
+              <button
+                className="button button-secondary"
+                type="button"
+                onClick={() => setConfirmClearOpen(false)}
+              >
+                Cancelar
+              </button>
+              <button
+                className="button button-danger"
+                type="button"
+                onClick={handleClearCart}
+              >
+                Limpar Carrinho
+              </button>
+            </div>
           </section>
         </div>
       )}
