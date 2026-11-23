@@ -124,3 +124,19 @@ export function createId(): string {
 export function getCrustPrice(bordas: CrustOption[], id: string): number {
   return bordas.find((borda) => borda.id === id)?.price ?? 0;
 }
+
+export function isBeverageCategory(category: { id: string; name: string }): boolean {
+  const id = category.id.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").trim();
+  const name = category.name.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").trim();
+  return (
+    id.includes("bebida") ||
+    name.includes("bebida") ||
+    id.includes("refrigerante") ||
+    name.includes("refrigerante") ||
+    id.includes("suco") ||
+    name.includes("suco") ||
+    id.includes("cerveja") ||
+    name.includes("cerveja")
+  );
+}
+

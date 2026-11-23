@@ -6,6 +6,7 @@ import {
   formatCurrency,
   getCrustPrice,
   getProductPrice,
+  isBeverageCategory,
   parsePrice,
   toCents,
   createId,
@@ -160,26 +161,63 @@ function App() {
     () => new Set(activeCategories.map((category) => category.id)),
     [activeCategories],
   );
-  const visibleProducts = useMemo(
+
+  const foodCategories = useMemo(
+    () => activeCategories.filter((category) => !isBeverageCategory(category)),
+    [activeCategories],
+  );
+  const beverageCategories = useMemo(
+    () => activeCategories.filter((category) => isBeverageCategory(category)),
+    [activeCategories],
+  );
+  const beverageCategoryIds = useMemo(
+    () => new Set(beverageCategories.map((category) => category.id)),
+    [beverageCategories],
+  );
+
+  const foodProducts = useMemo(
     () =>
       products.filter(
         (product) =>
           product.available &&
           activeCategoryIds.has(product.categoryId) &&
+          !beverageCategoryIds.has(product.categoryId) &&
           (activeCategory === "todos" || product.categoryId === activeCategory),
       ),
-    [activeCategory, activeCategoryIds, products],
+    [activeCategory, activeCategoryIds, beverageCategoryIds, products],
   );
+
+  const beverageProducts = useMemo(
+    () =>
+      products.filter(
+        (product) =>
+          product.available &&
+          activeCategoryIds.has(product.categoryId) &&
+          beverageCategoryIds.has(product.categoryId),
+      ),
+    [activeCategoryIds, beverageCategoryIds, products],
+  );
+
   const usableCrusts = useMemo(() => {
     const active = crusts.filter((crust) => crust.active || crust.id === "sem");
     return active.length ? active : [fallbackCrust];
   }, [crusts]);
 
   useEffect(() => {
-    if (activeCategory !== "todos" && !activeCategories.some((item) => item.id === activeCategory)) {
+    if (
+      activeCategory !== "todos" &&
+      !foodCategories.some((item) => item.id === activeCategory)
+    ) {
       setActiveCategory("todos");
     }
-  }, [activeCategory, activeCategories]);
+  }, [activeCategory, foodCategories]);
+
+  const scrollToBeverages = useCallback(() => {
+    const element = document.getElementById("bebidas");
+    if (element) {
+      element.scrollIntoView({ behavior: "smooth", block: "start" });
+    }
+  }, []);
 
   const isPizzaItem = useCallback(
     (item: CartItem) => {
@@ -553,7 +591,7 @@ function App() {
             >
               Todos
             </button>
-            {activeCategories.map((category) => (
+            {foodCategories.map((category) => (
               <button
                 className={activeCategory === category.id ? "category-chip selected" : "category-chip"}
                 key={category.id}
@@ -563,15 +601,25 @@ function App() {
                 {category.name}
               </button>
             ))}
+            {beverageProducts.length > 0 && beverageCategories.map((category) => (
+              <button
+                className="category-chip category-chip-beverage"
+                key={category.id}
+                type="button"
+                onClick={scrollToBeverages}
+              >
+                {category.name.includes("🥤") ? category.name : `🥤 ${category.name}`}
+              </button>
+            ))}
           </nav>
 
-          {visibleProducts.length === 0 ? (
+          {foodProducts.length === 0 ? (
             <p className="empty-menu">
               Nenhum produto disponível nesta categoria no momento.
             </p>
           ) : (
             <div className="product-grid">
-              {visibleProducts.map((product) => {
+              {foodProducts.map((product) => {
                 const price = getProductPrice(product);
                 const isPizza = categories.find((category) => category.id === product.categoryId)?.kind === "pizza";
                 return (
@@ -612,6 +660,50 @@ function App() {
                 );
               })}
             </div>
+          )}
+
+          {beverageProducts.length > 0 && (
+            <section className="beverages-section" id="bebidas" aria-labelledby="beverages-heading">
+              <div className="beverages-divider">
+                <h3 id="beverages-heading" className="beverages-title">
+                  <span className="beverages-icon" aria-hidden="true">🥤</span> Bebidas
+                </h3>
+              </div>
+
+              <div className="product-grid beverages-grid">
+                {beverageProducts.map((product) => {
+                  const price = getProductPrice(product);
+                  return (
+                    <article className="product-card beverage-card" key={product.id}>
+                      {product.image ? (
+                        <img className="product-image" src={product.image} alt={product.name} loading="lazy" />
+                      ) : (
+                        <div className="product-image image-empty beverage-image-empty" aria-hidden="true">
+                          🥤
+                        </div>
+                      )}
+                      <div className="product-content">
+                        <h3>{product.name}</h3>
+                        {product.description && <p>{product.description}</p>}
+                        <strong className="product-price">
+                          {price === undefined ? "Preço sob consulta" : formatCurrency(toCents(price))}
+                        </strong>
+                        <div className="product-actions">
+                          <button
+                            className="button button-primary"
+                            type="button"
+                            disabled={price === undefined || price <= 0}
+                            onClick={() => handleAddProduct(product)}
+                          >
+                            Adicionar
+                          </button>
+                        </div>
+                      </div>
+                    </article>
+                  );
+                })}
+              </div>
+            </section>
           )}
         </section>
       </main>

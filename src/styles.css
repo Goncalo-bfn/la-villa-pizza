@@ -312,6 +312,20 @@ img {
   color: var(--mustard);
 }
 
+.category-chip-beverage {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  border-color: rgba(227, 185, 79, 0.35);
+  transition: border-color 140ms ease, color 140ms ease, background-color 140ms ease;
+}
+
+.category-chip-beverage:hover {
+  border-color: var(--mustard);
+  color: var(--mustard);
+  background: rgba(227, 185, 79, 0.08);
+}
+
 .crust-picker {
   display: flex;
   align-items: center;
@@ -428,6 +442,58 @@ textarea {
   padding-right: 8px;
   padding-left: 8px;
   font-size: 13px;
+}
+
+.beverages-section {
+  margin-top: 48px;
+  padding-top: 16px;
+  scroll-margin-top: 24px;
+}
+
+.beverages-divider {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  margin: 0 0 24px;
+}
+
+.beverages-divider::before,
+.beverages-divider::after {
+  content: "";
+  flex: 1;
+  height: 1px;
+  background: var(--border);
+  opacity: 0.65;
+}
+
+.beverages-title {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  margin: 0;
+  font-family: Georgia, "Times New Roman", serif;
+  font-size: 22px;
+  font-weight: 600;
+  color: var(--text);
+  letter-spacing: 0.01em;
+  white-space: nowrap;
+}
+
+.beverages-icon {
+  font-size: 20px;
+}
+
+.beverage-card {
+  transition: transform 140ms ease, border-color 140ms ease;
+}
+
+.beverage-card .product-content p {
+  min-height: auto;
+  margin: 6px 0 10px;
+}
+
+.beverage-image-empty {
+  font-size: 34px;
 }
 
 .empty-menu,
@@ -1307,6 +1373,10 @@ textarea {
     font-size: 12px;
   }
 
+  .beverage-card .product-content p {
+    min-height: auto;
+  }
+
   .product-actions:has(.button-secondary) {
     grid-template-columns: 1fr;
   }
@@ -1410,6 +1480,33 @@ textarea {
     min-height: 70px;
     margin: 6px 0 10px;
     font-size: 11px;
+  }
+
+  .beverage-card .product-content p {
+    min-height: auto;
+  }
+
+  .beverages-section {
+    margin-top: 36px;
+    padding-top: 8px;
+    scroll-margin-top: 16px;
+  }
+
+  .beverages-divider {
+    gap: 12px;
+    margin-bottom: 18px;
+  }
+
+  .beverages-title {
+    font-size: 19px;
+  }
+
+  .beverages-icon {
+    font-size: 18px;
+  }
+
+  .beverage-image-empty {
+    font-size: 28px;
   }
 
   .product-price {
