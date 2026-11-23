@@ -272,6 +272,7 @@ function App() {
     setCart([]);
     setCheckoutError("");
     setConfirmClearOpen(false);
+    setCartOpen(false);
   }
 
   function sendOrder(event: FormEvent<HTMLFormElement>) {
