@@ -90,7 +90,6 @@ export default function AdminPage({ catalog, onRefresh }: AdminPageProps) {
   const [restaurantName, setRestaurantName] = useState(settings.restaurantName);
   const [whatsappNumber, setWhatsappNumber] = useState(settings.whatsappNumber);
   const [deliveryFeeInput, setDeliveryFeeInput] = useState(settings.deliveryFee.toFixed(2));
-  const [platformFeeInput, setPlatformFeeInput] = useState(settings.platformFee.toFixed(2));
   const [adminPin, setAdminPin] = useState(settings.adminPin);
 
   const sortedCategories = sortByOrder(categories);
@@ -371,7 +370,6 @@ export default function AdminPage({ catalog, onRefresh }: AdminPageProps) {
     const name = restaurantName.trim();
     const whatsapp = whatsappNumber.replace(/\D/g, "");
     const deliveryFee = parsePrice(deliveryFeeInput);
-    const platformFee = parsePrice(platformFeeInput);
     const newPin = adminPin.trim();
     if (!name) {
       setNotice({ kind: "error", text: "Informe o nome da pizzaria." });
@@ -381,8 +379,8 @@ export default function AdminPage({ catalog, onRefresh }: AdminPageProps) {
       setNotice({ kind: "error", text: "Informe o WhatsApp com DDI e DDD (somente números)." });
       return;
     }
-    if (deliveryFee === undefined || platformFee === undefined) {
-      setNotice({ kind: "error", text: "Informe taxas válidas (zero ou maior)." });
+    if (deliveryFee === undefined) {
+      setNotice({ kind: "error", text: "Informe uma taxa de entrega válida (zero ou maior)." });
       return;
     }
     if (!newPin) {
@@ -394,7 +392,7 @@ export default function AdminPage({ catalog, onRefresh }: AdminPageProps) {
       restaurantName: name,
       whatsappNumber: whatsapp,
       deliveryFee,
-      platformFee,
+      platformFee: 0,
       adminPin: newPin,
     };
     void run(async () => {
@@ -402,7 +400,6 @@ export default function AdminPage({ catalog, onRefresh }: AdminPageProps) {
       setRestaurantName(name);
       setWhatsappNumber(whatsapp);
       setDeliveryFeeInput(deliveryFee.toFixed(2));
-      setPlatformFeeInput(platformFee.toFixed(2));
       setAdminPin(newPin);
     }, "Configurações salvas.");
   }
@@ -1017,15 +1014,6 @@ export default function AdminPage({ catalog, onRefresh }: AdminPageProps) {
               />
             </label>
             <label>
-              Taxa da plataforma (R$)
-              <input
-                inputMode="decimal"
-                value={platformFeeInput}
-                onChange={(event) => setPlatformFeeInput(event.target.value)}
-                required
-              />
-            </label>
-            <label>
               PIN do admin
               <input
                 inputMode="numeric"
@@ -1034,10 +1022,6 @@ export default function AdminPage({ catalog, onRefresh }: AdminPageProps) {
                 required
               />
             </label>
-            <p className="settings-note">
-              A taxa da plataforma é aplicada em todos os pedidos, tanto na entrega quanto na
-              retirada.
-            </p>
             <button className="button button-primary" type="submit" disabled={saving}>
               Salvar configurações
             </button>

@@ -155,7 +155,6 @@ function App() {
     usableCrusts.find((crust) => crust.id === selectedCrust) ?? usableCrusts[0];
   const restaurantName = settings.restaurantName || FALLBACK_RESTAURANT_NAME;
   const whatsappNumber = (settings.whatsappNumber || FALLBACK_WHATSAPP_PHONE).replace(/\D/g, "");
-  const platformFeeCents = toCents(settings.platformFee);
   const deliveryFeeCents =
     details.fulfillment === "entrega" ? toCents(settings.deliveryFee) : 0;
 
@@ -163,7 +162,7 @@ function App() {
     (total, item) => total + item.unitPriceCents * item.qty,
     0,
   );
-  const totalCents = subtotalCents + deliveryFeeCents + platformFeeCents;
+  const totalCents = subtotalCents + deliveryFeeCents;
   const incompletePizza = cart.some((item) => item.halves?.length === 1);
   const cartCount = cart.reduce((total, item) => total + item.qty, 0);
 
@@ -297,10 +296,9 @@ function App() {
       }),
       "",
       `Subtotal: ${formatCurrency(subtotalCents)}`,
-      ...(details.fulfillment === "entrega"
+      ...(details.fulfillment === "entrega" && deliveryFeeCents > 0
         ? [`Taxa de entrega: ${formatCurrency(deliveryFeeCents)}`]
         : []),
-      `Taxa da plataforma: ${formatCurrency(platformFeeCents)}`,
       `*Total: ${formatCurrency(totalCents)}*`,
       "",
       `*Cliente:* ${details.name.trim()}`,
@@ -551,8 +549,9 @@ function App() {
                 )}
                 <div className="totals">
                   <div><span>Subtotal</span><strong>{formatCurrency(subtotalCents)}</strong></div>
-                  <div><span>Taxa de entrega</span><strong>{formatCurrency(deliveryFeeCents)}</strong></div>
-                  <div><span>Taxa da plataforma</span><strong>{formatCurrency(platformFeeCents)}</strong></div>
+                  {deliveryFeeCents > 0 && (
+                    <div><span>Taxa de entrega</span><strong>{formatCurrency(deliveryFeeCents)}</strong></div>
+                  )}
                   <div className="grand-total"><span>Total</span><strong>{formatCurrency(totalCents)}</strong></div>
                 </div>
                 <button

@@ -57,7 +57,7 @@ create table if not exists public.settings (
   restaurant_name text not null default 'La Villa Pizza',
   whatsapp_number text not null default '5598987020320',
   delivery_fee numeric(10, 2) not null default 0 check (delivery_fee >= 0),
-  platform_fee numeric(10, 2) not null default 0.99 check (platform_fee >= 0),
+  platform_fee numeric(10, 2) not null default 0 check (platform_fee >= 0),
   admin_pin text not null default '1234',
   legacy_migration_done boolean not null default false,
   updated_at timestamptz not null default now()
@@ -191,7 +191,7 @@ insert into public.crusts (id, name, price, active, sort_order) values
 on conflict (id) do nothing;
 
 insert into public.settings (id, restaurant_name, whatsapp_number, delivery_fee, platform_fee, admin_pin)
-values ('default', 'La Villa Pizza', '5598987020320', 0, 0.99, '1234')
+values ('default', 'La Villa Pizza', '5598987020320', 0, 0, '1234')
 on conflict (id) do nothing;
 
 notify pgrst, 'reload schema';

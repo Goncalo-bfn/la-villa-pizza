@@ -497,7 +497,7 @@ export async function migrateLegacyCatalog(current: CatalogData): Promise<"impor
     ...settingsRow({
       ...current.settings,
       deliveryFee: legacy.deliveryFee ?? current.settings.deliveryFee,
-      platformFee: legacy.platformFee ?? current.settings.platformFee,
+      platformFee: 0,
       legacyMigrationDone: true,
     }),
   });
