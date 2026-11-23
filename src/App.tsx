@@ -666,7 +666,7 @@ function App() {
             <section className="beverages-section" id="bebidas" aria-labelledby="beverages-heading">
               <div className="beverages-divider">
                 <h3 id="beverages-heading" className="beverages-title">
-                  <span className="beverages-icon" aria-hidden="true">🥤</span> Bebidas
+                  Bebidas
                 </h3>
               </div>
 
