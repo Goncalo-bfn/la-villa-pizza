@@ -59,6 +59,7 @@ create table if not exists public.settings (
   delivery_fee numeric(10, 2) not null default 0 check (delivery_fee >= 0),
   platform_fee numeric(10, 2) not null default 0 check (platform_fee >= 0),
   admin_pin text not null default '1234',
+  pix_key text,
   legacy_migration_done boolean not null default false,
   updated_at timestamptz not null default now()
 );
@@ -66,6 +67,8 @@ create table if not exists public.settings (
 -- Compatibilidade com uma instalação anterior desta mesma tabela.
 alter table public.settings
   add column if not exists legacy_migration_done boolean not null default false;
+alter table public.settings
+  add column if not exists pix_key text;
 
 -- ----------------------------------------------------------------------------
 -- Row Level Security (somente anon, sem autenticação — conforme escopo)

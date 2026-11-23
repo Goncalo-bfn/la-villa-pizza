@@ -6,13 +6,23 @@ import {
   formatCurrency,
   getCrustPrice,
   getProductPrice,
+  parsePrice,
   toCents,
   createId,
 } from "./catalog";
 import { FALLBACK_RESTAURANT_NAME, FALLBACK_WHATSAPP_PHONE } from "./config";
 import { isSupabaseConfigured, supabase } from "./supabase";
 import { useStoredState } from "./storage";
-import type { CartItem, CatalogData, CrustOption, MenuProduct, PizzaHalf } from "./types";
+import type {
+  CardType,
+  CartItem,
+  CatalogData,
+  CrustOption,
+  MenuProduct,
+  NeedsChange,
+  PaymentMethod,
+  PizzaHalf,
+} from "./types";
 
 type Fulfillment = "entrega" | "retirada";
 
@@ -22,6 +32,10 @@ interface CheckoutDetails {
   fulfillment: Fulfillment;
   address: string;
   reference: string;
+  paymentMethod: PaymentMethod | "";
+  cardType: CardType | "";
+  needsChange: NeedsChange;
+  changeFor: string;
 }
 
 function errorMessage(error: unknown, fallback: string): string {
@@ -55,12 +69,17 @@ function App() {
   const [checkoutOpen, setCheckoutOpen] = useState(false);
   const [checkoutError, setCheckoutError] = useState("");
   const [confirmClearOpen, setConfirmClearOpen] = useState(false);
+  const [pixCopied, setPixCopied] = useState(false);
   const [details, setDetails] = useState<CheckoutDetails>({
     name: "",
     phone: "",
     fulfillment: "entrega",
     address: "",
     reference: "",
+    paymentMethod: "",
+    cardType: "",
+    needsChange: "nao",
+    changeFor: "",
   });
   const isAdminPage = window.location.pathname.replace(/\/+$/, "") === "/admin";
 
@@ -358,6 +377,58 @@ function App() {
       setCheckoutError("Adicione pelo menos um produto ao pedido.");
       return;
     }
+    if (!details.name.trim()) {
+      setCheckoutError("Informe seu nome.");
+      return;
+    }
+    if (!details.phone.trim()) {
+      setCheckoutError("Informe seu telefone.");
+      return;
+    }
+    if (details.fulfillment === "entrega" && !details.address.trim()) {
+      setCheckoutError("Informe o endereço de entrega.");
+      return;
+    }
+    if (!details.paymentMethod) {
+      setCheckoutError("Selecione uma forma de pagamento.");
+      return;
+    }
+    if (details.paymentMethod === "cartao" && !details.cardType) {
+      setCheckoutError("Selecione o tipo de cartão (Débito ou Crédito).");
+      return;
+    }
+    if (details.paymentMethod === "dinheiro" && details.needsChange === "sim") {
+      if (!details.changeFor.trim()) {
+        setCheckoutError("Informe o valor para troco.");
+        return;
+      }
+      const changeNum = parsePrice(details.changeFor.replace(/[^\d.,]/g, ""));
+      if (changeNum === undefined || changeNum <= 0) {
+        setCheckoutError("Informe um valor válido para troco.");
+        return;
+      }
+    }
+
+    let paymentLines: string[] = [];
+    if (details.paymentMethod === "pix") {
+      paymentLines = ["Pagamento: PIX"];
+    } else if (details.paymentMethod === "cartao") {
+      paymentLines = [
+        `Pagamento: Cartão de ${details.cardType === "credito" ? "Crédito" : "Débito"}`,
+      ];
+    } else if (details.paymentMethod === "dinheiro") {
+      paymentLines = ["Pagamento: Dinheiro"];
+      if (details.needsChange === "sim") {
+        const changeNum = parsePrice(details.changeFor.replace(/[^\d.,]/g, ""));
+        const formattedChange =
+          changeNum !== undefined
+            ? formatCurrency(toCents(changeNum))
+            : details.changeFor.trim();
+        paymentLines.push(`Troco para: ${formattedChange}`);
+      } else {
+        paymentLines.push("Sem necessidade de troco");
+      }
+    }
 
     const lines = [
       `*Pedido — ${restaurantName}*`,
@@ -389,6 +460,8 @@ function App() {
             ...(details.reference.trim() ? [`*Referência:* ${details.reference.trim()}`] : []),
           ]
         : ["*Retirada no local*"]),
+      "",
+      ...paymentLines,
     ];
     const url = `https://wa.me/${whatsappNumber}?text=${encodeURIComponent(lines.join("\n"))}`;
     window.open(url, "_blank", "noopener,noreferrer");
@@ -739,6 +812,140 @@ function App() {
                     />
                   </label>
                 </>
+              )}
+              <fieldset>
+                <legend>Forma de pagamento</legend>
+                <label className="radio-row">
+                  <input
+                    type="radio"
+                    name="paymentMethod"
+                    value="pix"
+                    checked={details.paymentMethod === "pix"}
+                    onChange={() =>
+                      setDetails({
+                        ...details,
+                        paymentMethod: "pix",
+                        cardType: "",
+                      })
+                    }
+                  />
+                  PIX
+                </label>
+                <label className="radio-row">
+                  <input
+                    type="radio"
+                    name="paymentMethod"
+                    value="cartao"
+                    checked={details.paymentMethod === "cartao"}
+                    onChange={() =>
+                      setDetails({
+                        ...details,
+                        paymentMethod: "cartao",
+                      })
+                    }
+                  />
+                  Cartão
+                </label>
+                <label className="radio-row">
+                  <input
+                    type="radio"
+                    name="paymentMethod"
+                    value="dinheiro"
+                    checked={details.paymentMethod === "dinheiro"}
+                    onChange={() =>
+                      setDetails({
+                        ...details,
+                        paymentMethod: "dinheiro",
+                        cardType: "",
+                      })
+                    }
+                  />
+                  Dinheiro
+                </label>
+              </fieldset>
+              {details.paymentMethod === "pix" && settings.pixKey && (
+                <div className="pix-info-card">
+                  <span className="pix-info-label">Chave PIX da loja</span>
+                  <div className="pix-key-display">
+                    <code>{settings.pixKey}</code>
+                    <button
+                      type="button"
+                      className="button button-secondary button-sm"
+                      onClick={() => {
+                        void navigator.clipboard?.writeText(settings.pixKey || "");
+                        setPixCopied(true);
+                        setTimeout(() => setPixCopied(false), 2000);
+                      }}
+                    >
+                      {pixCopied ? "Copiado!" : "Copiar"}
+                    </button>
+                  </div>
+                </div>
+              )}
+              {details.paymentMethod === "cartao" && (
+                <fieldset className="sub-fieldset">
+                  <legend>Tipo de cartão</legend>
+                  <label className="radio-row">
+                    <input
+                      type="radio"
+                      name="cardType"
+                      value="debito"
+                      checked={details.cardType === "debito"}
+                      onChange={() => setDetails({ ...details, cardType: "debito" })}
+                    />
+                    Débito
+                  </label>
+                  <label className="radio-row">
+                    <input
+                      type="radio"
+                      name="cardType"
+                      value="credito"
+                      checked={details.cardType === "credito"}
+                      onChange={() => setDetails({ ...details, cardType: "credito" })}
+                    />
+                    Crédito
+                  </label>
+                </fieldset>
+              )}
+              {details.paymentMethod === "dinheiro" && (
+                <fieldset className="sub-fieldset">
+                  <legend>Precisa de troco?</legend>
+                  <label className="radio-row">
+                    <input
+                      type="radio"
+                      name="needsChange"
+                      value="nao"
+                      checked={details.needsChange === "nao"}
+                      onChange={() =>
+                        setDetails({ ...details, needsChange: "nao", changeFor: "" })
+                      }
+                    />
+                    Não
+                  </label>
+                  <label className="radio-row">
+                    <input
+                      type="radio"
+                      name="needsChange"
+                      value="sim"
+                      checked={details.needsChange === "sim"}
+                      onChange={() => setDetails({ ...details, needsChange: "sim" })}
+                    />
+                    Sim
+                  </label>
+                  {details.needsChange === "sim" && (
+                    <label className="sub-label">
+                      Valor para troco
+                      <input
+                        inputMode="decimal"
+                        placeholder="Ex.: 100"
+                        value={details.changeFor}
+                        onChange={(event) =>
+                          setDetails({ ...details, changeFor: event.target.value })
+                        }
+                      />
+                    </label>
+                  )}
+                </fieldset>
               )}
               {checkoutError && <p className="form-error" role="alert">{checkoutError}</p>}
               <div className="checkout-total">

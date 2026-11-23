@@ -59,6 +59,7 @@ interface SettingsRow {
   delivery_fee: number | string;
   platform_fee: number | string;
   admin_pin: string;
+  pix_key?: string | null;
   legacy_migration_done: boolean;
   updated_at?: string;
 }
@@ -120,6 +121,7 @@ function mapSettings(row: SettingsRow): StoreSettings {
     deliveryFee: toNumber(row.delivery_fee),
     platformFee: toNumber(row.platform_fee, FALLBACK_PLATFORM_FEE),
     adminPin: row.admin_pin?.trim() || FALLBACK_ADMIN_PIN,
+    pixKey: row.pix_key?.trim() || "",
     legacyMigrationDone: Boolean(row.legacy_migration_done),
     updatedAt: row.updated_at,
   };
@@ -132,6 +134,7 @@ export function defaultSettings(): StoreSettings {
     deliveryFee: 0,
     platformFee: FALLBACK_PLATFORM_FEE,
     adminPin: FALLBACK_ADMIN_PIN,
+    pixKey: "",
     legacyMigrationDone: false,
   };
 }
@@ -219,6 +222,7 @@ function settingsRow(settings: StoreSettings) {
     delivery_fee: settings.deliveryFee,
     platform_fee: settings.platformFee,
     admin_pin: settings.adminPin,
+    pix_key: settings.pixKey?.trim() || null,
     legacy_migration_done: settings.legacyMigrationDone,
     updated_at: new Date().toISOString(),
   };
@@ -256,7 +260,14 @@ export async function deleteCrust(id: string): Promise<void> {
 }
 
 export async function saveSettings(settings: StoreSettings): Promise<void> {
-  const { error } = await requireSupabase().from("settings").upsert(settingsRow(settings));
+  const row = settingsRow(settings);
+  const { error } = await requireSupabase().from("settings").upsert(row);
+  if (error && error.message?.includes("pix_key")) {
+    const { pix_key, ...fallbackRow } = row;
+    const { error: fallbackError } = await requireSupabase().from("settings").upsert(fallbackRow);
+    fail(fallbackError);
+    return;
+  }
   fail(error);
 }
 

@@ -91,6 +91,7 @@ export default function AdminPage({ catalog, onRefresh }: AdminPageProps) {
   const [whatsappNumber, setWhatsappNumber] = useState(settings.whatsappNumber);
   const [deliveryFeeInput, setDeliveryFeeInput] = useState(settings.deliveryFee.toFixed(2));
   const [adminPin, setAdminPin] = useState(settings.adminPin);
+  const [pixKey, setPixKey] = useState(settings.pixKey ?? "");
 
   const sortedCategories = sortByOrder(categories);
   const sortedProducts = sortByOrder(products);
@@ -118,6 +119,7 @@ export default function AdminPage({ catalog, onRefresh }: AdminPageProps) {
       setUnlocked(true);
       setPinError("");
       setNotice(null);
+      setPixKey(settings.pixKey ?? "");
       setLegacyInfo(legacyCatalogSummary());
       return;
     }
@@ -394,6 +396,7 @@ export default function AdminPage({ catalog, onRefresh }: AdminPageProps) {
       deliveryFee,
       platformFee: 0,
       adminPin: newPin,
+      pixKey: pixKey.trim(),
     };
     void run(async () => {
       await saveSettings(next);
@@ -401,6 +404,7 @@ export default function AdminPage({ catalog, onRefresh }: AdminPageProps) {
       setWhatsappNumber(whatsapp);
       setDeliveryFeeInput(deliveryFee.toFixed(2));
       setAdminPin(newPin);
+      setPixKey(pixKey.trim());
     }, "Configurações salvas.");
   }
 
@@ -1011,6 +1015,14 @@ export default function AdminPage({ catalog, onRefresh }: AdminPageProps) {
                 value={deliveryFeeInput}
                 onChange={(event) => setDeliveryFeeInput(event.target.value)}
                 required
+              />
+            </label>
+            <label>
+              Chave PIX
+              <input
+                value={pixKey}
+                onChange={(event) => setPixKey(event.target.value)}
+                placeholder="Telefone, CPF ou E-mail"
               />
             </label>
             <label>

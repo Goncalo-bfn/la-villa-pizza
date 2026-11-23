@@ -1,4 +1,7 @@
 export type CategoryKind = "pizza" | "simple";
+export type PaymentMethod = "pix" | "cartao" | "dinheiro";
+export type CardType = "debito" | "credito";
+export type NeedsChange = "nao" | "sim";
 
 export interface Category {
   id: string;
@@ -39,6 +42,7 @@ export interface StoreSettings {
   deliveryFee: number;
   platformFee: number;
   adminPin: string;
+  pixKey?: string;
   /** Controle interno da migração única do localStorage. */
   legacyMigrationDone: boolean;
   updatedAt?: string;
