@@ -12,7 +12,7 @@ import {
 import { FALLBACK_RESTAURANT_NAME, FALLBACK_WHATSAPP_PHONE } from "./config";
 import { isSupabaseConfigured, supabase } from "./supabase";
 import { useStoredState } from "./storage";
-import type { CartItem, CatalogData, MenuProduct } from "./types";
+import type { CartItem, CatalogData, CrustOption, MenuProduct, PizzaHalf } from "./types";
 
 type Fulfillment = "entrega" | "retirada";
 
@@ -40,7 +40,17 @@ function App() {
     reportStorageError,
   );
   const [activeCategory, setActiveCategory] = useState("todos");
-  const [selectedCrust, setSelectedCrust] = useState("sem");
+  const [configuringPizza, setConfiguringPizza] = useState<{
+    type: "whole";
+    product: MenuProduct;
+    selectedCrustId: string;
+  } | {
+    type: "half";
+    waitingIndex: number;
+    firstHalf: PizzaHalf;
+    secondProduct: MenuProduct;
+    selectedCrustId: string;
+  } | null>(null);
   const [cartOpen, setCartOpen] = useState(false);
   const [checkoutOpen, setCheckoutOpen] = useState(false);
   const [checkoutError, setCheckoutError] = useState("");
@@ -152,8 +162,17 @@ function App() {
     }
   }, [activeCategory, activeCategories]);
 
-  const selectedCrustOption =
-    usableCrusts.find((crust) => crust.id === selectedCrust) ?? usableCrusts[0];
+  const isPizzaItem = useCallback(
+    (item: CartItem) => {
+      if (item.halves && item.halves.length > 0) return true;
+      const product = products.find((p) => p.id === item.productId);
+      if (!product) return false;
+      const category = categories.find((c) => c.id === product.categoryId);
+      return category?.kind === "pizza";
+    },
+    [categories, products],
+  );
+
   const restaurantName = settings.restaurantName || FALLBACK_RESTAURANT_NAME;
   const whatsappNumber = (settings.whatsappNumber || FALLBACK_WHATSAPP_PHONE).replace(/\D/g, "");
   const deliveryFeeCents =
@@ -167,15 +186,13 @@ function App() {
   const incompletePizza = cart.some((item) => item.halves?.length === 1);
   const cartCount = cart.reduce((total, item) => total + item.qty, 0);
 
-  function addWholeProduct(product: MenuProduct) {
+  function addWholeProduct(product: MenuProduct, crust: CrustOption) {
     const rawPrice = getProductPrice(product);
     if (rawPrice === undefined || rawPrice <= 0) return;
     const basePriceCents = toCents(rawPrice);
     const isPizza = categories.find((category) => category.id === product.categoryId)?.kind === "pizza";
-    const crust = isPizza
-      ? usableCrusts.find((item) => item.id === selectedCrustOption.id) ?? usableCrusts[0]
-      : fallbackCrust;
-    const crustPriceCents = isPizza ? toCents(getCrustPrice(usableCrusts, crust.id)) : 0;
+    const appliedCrust = isPizza ? crust : fallbackCrust;
+    const crustPriceCents = isPizza ? toCents(getCrustPrice(usableCrusts, appliedCrust.id)) : 0;
     const newItem: CartItem = {
       id: createId(),
       productId: product.id,
@@ -183,8 +200,8 @@ function App() {
       qty: 1,
       sizeId: "unico",
       sizeName: "Único",
-      bordaId: crust.id,
-      bordaName: crust.name,
+      bordaId: appliedCrust.id,
+      bordaName: appliedCrust.name,
       bordaPriceCents: crustPriceCents,
       basePriceCents,
       unitPriceCents: basePriceCents + crustPriceCents,
@@ -204,54 +221,109 @@ function App() {
     });
   }
 
-  function addHalfProduct(product: MenuProduct) {
+  function addFirstHalf(product: MenuProduct) {
     const rawPrice = getProductPrice(product);
     if (rawPrice === undefined || rawPrice <= 0) return;
     const priceCents = toCents(rawPrice);
-    const crust =
-      usableCrusts.find((item) => item.id === selectedCrustOption.id) ?? usableCrusts[0];
+    setCart((current) => [
+      ...current,
+      {
+        id: createId(),
+        productId: product.id,
+        name: `Meia pizza • ${product.name}`,
+        qty: 1,
+        sizeId: "unico",
+        sizeName: "Único",
+        bordaId: fallbackCrust.id,
+        bordaName: fallbackCrust.name,
+        bordaPriceCents: 0,
+        basePriceCents: priceCents,
+        unitPriceCents: priceCents,
+        halves: [{ productId: product.id, name: product.name, priceCents }],
+      },
+    ]);
+  }
+
+  function completeHalfPizza(
+    waitingIndex: number,
+    firstHalf: PizzaHalf,
+    secondProduct: MenuProduct,
+    crust: CrustOption,
+  ) {
+    const rawPrice = getProductPrice(secondProduct);
+    if (rawPrice === undefined || rawPrice <= 0) return;
+    const secondHalfPriceCents = toCents(rawPrice);
+    const secondHalf = {
+      productId: secondProduct.id,
+      name: secondProduct.name,
+      priceCents: secondHalfPriceCents,
+    };
+    const halves = [firstHalf, secondHalf];
+    const basePriceCents = Math.max(...halves.map((half) => half.priceCents));
     const crustPriceCents = toCents(getCrustPrice(usableCrusts, crust.id));
 
     setCart((current) => {
-      const waitingIndex = current.findIndex(
-        (item) =>
-          item.halves?.length === 1 &&
-          item.sizeId === "unico" &&
-          item.bordaId === crust.id,
-      );
-      const secondHalf = { productId: product.id, name: product.name, priceCents };
-      if (waitingIndex >= 0) {
-        const waitingItem = current[waitingIndex];
-        const halves = [...(waitingItem.halves ?? []), secondHalf];
-        const basePriceCents = Math.max(...halves.map((half) => half.priceCents));
-        const merged: CartItem = {
-          ...waitingItem,
-          name: "Pizza Meio a Meio",
-          halves,
-          basePriceCents,
-          unitPriceCents: basePriceCents + waitingItem.bordaPriceCents,
-        };
-        return current.map((item, index) => (index === waitingIndex ? merged : item));
-      }
+      const waitingItem = current[waitingIndex];
+      if (!waitingItem) return current;
+      const merged: CartItem = {
+        ...waitingItem,
+        name: "Pizza Meio a Meio",
+        halves,
+        bordaId: crust.id,
+        bordaName: crust.name,
+        bordaPriceCents: crustPriceCents,
+        basePriceCents,
+        unitPriceCents: basePriceCents + crustPriceCents,
+      };
+      return current.map((item, index) => (index === waitingIndex ? merged : item));
+    });
+  }
 
-      return [
-        ...current,
-        {
-          id: createId(),
-          productId: product.id,
-          name: `Meia pizza • ${product.name}`,
-          qty: 1,
-          sizeId: "unico",
-          sizeName: "Único",
+  function changeItemCrust(item: CartItem, crustId: string) {
+    const crust = usableCrusts.find((c) => c.id === crustId) ?? fallbackCrust;
+    const crustPriceCents = toCents(getCrustPrice(usableCrusts, crust.id));
+    setCart((current) =>
+      current.map((cartItem) => {
+        if (cartItem.id !== item.id) return cartItem;
+        return {
+          ...cartItem,
           bordaId: crust.id,
           bordaName: crust.name,
           bordaPriceCents: crustPriceCents,
-          basePriceCents: priceCents,
-          unitPriceCents: priceCents + crustPriceCents,
-          halves: [{ productId: product.id, name: product.name, priceCents }],
-        },
-      ];
-    });
+          unitPriceCents: cartItem.basePriceCents + crustPriceCents,
+        };
+      }),
+    );
+  }
+
+  function handleAddProduct(product: MenuProduct) {
+    const isPizza = categories.find((c) => c.id === product.categoryId)?.kind === "pizza";
+    if (isPizza) {
+      setConfiguringPizza({
+        type: "whole",
+        product,
+        selectedCrustId: "sem",
+      });
+    } else {
+      addWholeProduct(product, fallbackCrust);
+    }
+  }
+
+  function handleAddHalf(product: MenuProduct) {
+    const waitingIndex = cart.findIndex((item) => item.halves?.length === 1);
+    if (waitingIndex >= 0) {
+      const waitingItem = cart[waitingIndex];
+      const firstHalf = waitingItem.halves![0];
+      setConfiguringPizza({
+        type: "half",
+        waitingIndex,
+        firstHalf,
+        secondProduct: product,
+        selectedCrustId: waitingItem.bordaId || "sem",
+      });
+    } else {
+      addFirstHalf(product);
+    }
   }
 
   function changeQuantity(item: CartItem, delta: number) {
@@ -420,21 +492,6 @@ function App() {
             ))}
           </nav>
 
-          <div className="crust-picker">
-            <label htmlFor="crust-choice">Borda da pizza</label>
-            <select
-              id="crust-choice"
-              value={selectedCrustOption.id}
-              onChange={(event) => setSelectedCrust(event.target.value)}
-            >
-              {usableCrusts.map((crust) => (
-                <option key={crust.id} value={crust.id}>
-                  {crust.name}{crust.price > 0 ? ` (+${formatCurrency(toCents(crust.price))})` : ""}
-                </option>
-              ))}
-            </select>
-          </div>
-
           {visibleProducts.length === 0 ? (
             <p className="empty-menu">
               Nenhum produto disponível nesta categoria no momento.
@@ -462,7 +519,7 @@ function App() {
                           className="button button-primary"
                           type="button"
                           disabled={price === undefined || price <= 0}
-                          onClick={() => addWholeProduct(product)}
+                          onClick={() => handleAddProduct(product)}
                         >
                           Adicionar
                         </button>
@@ -471,7 +528,7 @@ function App() {
                             className="button button-secondary"
                             type="button"
                             disabled={price === undefined || price <= 0}
-                            onClick={() => addHalfProduct(product)}
+                            onClick={() => handleAddHalf(product)}
                           >
                             ½ sabor
                           </button>
@@ -529,7 +586,24 @@ function App() {
                         {item.halves?.length === 2 && (
                           <span>½ {item.halves[0].name} + ½ {item.halves[1].name}</span>
                         )}
-                        {item.bordaId !== "sem" && <span>Borda: {item.bordaName}</span>}
+                        {isPizzaItem(item) && item.halves?.length !== 1 && usableCrusts.length > 1 ? (
+                          <div className="cart-item-crust">
+                            <label htmlFor={`cart-crust-${item.id}`}>Borda:</label>
+                            <select
+                              id={`cart-crust-${item.id}`}
+                              value={item.bordaId}
+                              onChange={(e) => changeItemCrust(item, e.target.value)}
+                            >
+                              {usableCrusts.map((crust) => (
+                                <option key={crust.id} value={crust.id}>
+                                  {crust.name}{crust.price > 0 ? ` (+${formatCurrency(toCents(crust.price))})` : ""}
+                                </option>
+                              ))}
+                            </select>
+                          </div>
+                        ) : (
+                          item.bordaId !== "sem" && <span>Borda: {item.bordaName}</span>
+                        )}
                         <span>{formatCurrency(item.unitPriceCents)} cada</span>
                       </div>
                       <div className="cart-item-actions">
@@ -598,7 +672,7 @@ function App() {
             <div className="dialog-heading">
               <div>
                 <p className="eyebrow">Só mais um passo</p>
-                <h2 id="checkout-title">Enviar pelo WhatsApp</h2>
+                <h2 id="checkout-title">Finalizar Pedido</h2>
               </div>
               <button className="icon-button" type="button" aria-label="Fechar" onClick={() => setCheckoutOpen(false)}>×</button>
             </div>
@@ -672,7 +746,7 @@ function App() {
                 <strong>{formatCurrency(totalCents)}</strong>
               </div>
               <button className="button button-primary full-width" type="submit">
-                Abrir conversa no WhatsApp
+                Finalizar Pedido
               </button>
               <p className="checkout-note">O pedido será enviado para confirmação pela pizzaria.</p>
             </form>
@@ -723,6 +797,118 @@ function App() {
                 Limpar Carrinho
               </button>
             </div>
+          </section>
+        </div>
+      )}
+
+      {configuringPizza && (
+        <div
+          className="modal-backdrop"
+          onMouseDown={() => setConfiguringPizza(null)}
+        >
+          <section
+            className="pizza-config-dialog"
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="pizza-config-title"
+            onMouseDown={(event) => event.stopPropagation()}
+          >
+            <div className="dialog-heading">
+              <div>
+                <p className="eyebrow">Personalizar pizza</p>
+                <h2 id="pizza-config-title">
+                  {configuringPizza.type === "whole"
+                    ? configuringPizza.product.name
+                    : "Pizza Meio a Meio"}
+                </h2>
+              </div>
+              <button
+                className="icon-button"
+                type="button"
+                aria-label="Fechar"
+                onClick={() => setConfiguringPizza(null)}
+              >
+                ×
+              </button>
+            </div>
+
+            {configuringPizza.type === "whole" ? (
+              configuringPizza.product.description ? (
+                <p className="pizza-config-desc">{configuringPizza.product.description}</p>
+              ) : null
+            ) : (
+              <p className="pizza-config-desc">
+                ½ {configuringPizza.firstHalf.name} + ½ {configuringPizza.secondProduct.name}
+              </p>
+            )}
+
+            <div className="pizza-config-section">
+              <label htmlFor="modal-crust-select" className="pizza-config-label">
+                Borda recheada
+              </label>
+              <select
+                id="modal-crust-select"
+                value={configuringPizza.selectedCrustId}
+                onChange={(e) =>
+                  setConfiguringPizza({
+                    ...configuringPizza,
+                    selectedCrustId: e.target.value,
+                  })
+                }
+              >
+                {usableCrusts.map((crust) => (
+                  <option key={crust.id} value={crust.id}>
+                    {crust.name}
+                    {crust.price > 0 ? ` (+${formatCurrency(toCents(crust.price))})` : ""}
+                  </option>
+                ))}
+              </select>
+            </div>
+
+            {(() => {
+              const basePrice =
+                configuringPizza.type === "whole"
+                  ? toCents(getProductPrice(configuringPizza.product) ?? 0)
+                  : Math.max(
+                      configuringPizza.firstHalf.priceCents,
+                      toCents(getProductPrice(configuringPizza.secondProduct) ?? 0),
+                    );
+              const crustPrice = toCents(
+                getCrustPrice(usableCrusts, configuringPizza.selectedCrustId),
+              );
+              const totalPrice = basePrice + crustPrice;
+
+              return (
+                <div className="pizza-config-footer">
+                  <div className="pizza-config-price">
+                    <span>Valor unitário</span>
+                    <strong>{formatCurrency(totalPrice)}</strong>
+                  </div>
+                  <button
+                    className="button button-primary full-width"
+                    type="button"
+                    onClick={() => {
+                      const crust =
+                        usableCrusts.find((c) => c.id === configuringPizza.selectedCrustId) ??
+                        fallbackCrust;
+                      if (configuringPizza.type === "whole") {
+                        addWholeProduct(configuringPizza.product, crust);
+                      } else {
+                        completeHalfPizza(
+                          configuringPizza.waitingIndex,
+                          configuringPizza.firstHalf,
+                          configuringPizza.secondProduct,
+                          crust,
+                        );
+                      }
+                      setConfiguringPizza(null);
+                    }}
+                  >
+                    Adicionar ao pedido · {formatCurrency(totalPrice)}
+                  </button>
+                </div>
+              );
+            })()}
           </section>
         </div>
       )}
