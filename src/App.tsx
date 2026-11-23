@@ -710,7 +710,6 @@ function App() {
 
       <footer className="site-footer">
         <p>{restaurantName} · O sabor que conquista</p>
-        <a href="/admin">Área administrativa</a>
       </footer>
 
       {cartCount > 0 && !cartOpen && (

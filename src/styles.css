@@ -508,7 +508,8 @@ textarea {
 
 .site-footer {
   display: flex;
-  justify-content: space-between;
+  justify-content: center;
+  text-align: center;
   gap: 12px;
   width: min(1180px, 100%);
   margin: 0 auto;
