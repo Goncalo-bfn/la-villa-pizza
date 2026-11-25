@@ -566,21 +566,38 @@ function App() {
       {storageError && <p className="storage-warning" role="alert">{storageError}</p>}
 
       <main>
-        <section className="hero">
-          <img className="hero-image" src="/images/hero-forno.jpg" alt="Pizza assando no forno a lenha" />
+        <section className="hero" aria-labelledby="hero-title">
+          <img
+            className="hero-image"
+            src="/images/hero-forno.jpg"
+            alt="Pizza assando no forno a lenha"
+            fetchPriority="high"
+          />
           <div className="hero-shade" />
           <div className="hero-copy">
-            <p className="eyebrow">Feita com carinho, do nosso forno para você</p>
-            <h1>Uma pizza especial deixa qualquer momento melhor.</h1>
-            <a className="button button-primary" href="#cardapio">Ver cardápio</a>
+            <p className="eyebrow hero-eyebrow">Uma experiência feita para compartilhar</p>
+            <h1 id="hero-title">Uma grande noite começa com uma boa pizza.</h1>
+            <p className="hero-description">
+              Escolha seus sabores, personalize a borda e monte seu pedido em poucos passos.
+            </p>
+            <div className="hero-actions">
+              <a className="button button-primary hero-cta" href="#cardapio">
+                Explorar cardápio <span aria-hidden="true">→</span>
+              </a>
+              <span className="hero-note">Envie seu pedido pelo WhatsApp</span>
+            </div>
+            <ul className="hero-highlights" aria-label="Opções para personalizar seu pedido">
+              <li>Combine dois sabores</li>
+              <li>Escolha sua borda</li>
+            </ul>
           </div>
         </section>
 
         <section className="menu-section" id="cardapio">
           <div className="menu-heading">
-            <p className="eyebrow">Escolha seus sabores</p>
-            <h2>Nosso cardápio</h2>
-            <p>Monte seu pedido e envie direto pelo WhatsApp.</p>
+            <p className="eyebrow">Feita para abrir o apetite</p>
+            <h2>Sabores para compartilhar</h2>
+            <p>Escolha suas pizzas e bebidas e monte seu pedido pelo WhatsApp.</p>
           </div>
 
           <nav className="category-nav" aria-label="Categorias do cardápio">
@@ -625,9 +642,19 @@ function App() {
                 return (
                   <article className="product-card" key={product.id}>
                     {product.image ? (
-                      <img className="product-image" src={product.image} alt={product.name} loading="lazy" />
+                      <div className="product-media">
+                        <img
+                          className="product-image"
+                          src={product.image}
+                          alt={product.name}
+                          loading="lazy"
+                          decoding="async"
+                        />
+                      </div>
                     ) : (
-                      <div className="product-image image-empty" aria-hidden="true">La Villa</div>
+                      <div className="product-media">
+                        <div className="product-image image-empty" aria-hidden="true">La Villa</div>
+                      </div>
                     )}
                     <div className="product-content">
                       <h3>{product.name}</h3>
@@ -635,13 +662,14 @@ function App() {
                       <strong className="product-price">
                         {price === undefined ? "Preço sob consulta" : formatCurrency(toCents(price))}
                       </strong>
-                      <div className="product-actions">
+                      <div className={isPizza ? "product-actions product-actions-pizza" : "product-actions"}>
                         <button
                           className="button button-primary"
                           type="button"
                           disabled={price === undefined || price <= 0}
                           onClick={() => handleAddProduct(product)}
                         >
+                          <span className="add-icon" aria-hidden="true">+</span>
                           Adicionar
                         </button>
                         {isPizza && (
@@ -676,10 +704,20 @@ function App() {
                   return (
                     <article className="product-card beverage-card" key={product.id}>
                       {product.image ? (
-                        <img className="product-image" src={product.image} alt={product.name} loading="lazy" />
+                        <div className="product-media">
+                          <img
+                            className="product-image"
+                            src={product.image}
+                            alt={product.name}
+                            loading="lazy"
+                            decoding="async"
+                          />
+                        </div>
                       ) : (
-                        <div className="product-image image-empty beverage-image-empty" aria-hidden="true">
-                          🥤
+                        <div className="product-media">
+                          <div className="product-image image-empty beverage-image-empty" aria-hidden="true">
+                            🥤
+                          </div>
                         </div>
                       )}
                       <div className="product-content">
@@ -695,6 +733,7 @@ function App() {
                             disabled={price === undefined || price <= 0}
                             onClick={() => handleAddProduct(product)}
                           >
+                            <span className="add-icon" aria-hidden="true">+</span>
                             Adicionar
                           </button>
                         </div>
@@ -709,7 +748,15 @@ function App() {
       </main>
 
       <footer className="site-footer">
-        <p>{restaurantName} · O sabor que conquista</p>
+        <a className="footer-brand" href="/" aria-label={`${restaurantName}, início`}>
+          <img src="/images/la-villa-logo.jpg" alt="" loading="lazy" />
+          <span>
+            <strong>{restaurantName}</strong>
+            <small>O sabor que conquista</small>
+          </span>
+        </a>
+        <a className="footer-menu-link" href="#cardapio">Explorar cardápio <span aria-hidden="true">→</span></a>
+        <p className="footer-note">Envie seu pedido pelo WhatsApp</p>
       </footer>
 
       {cartCount > 0 && !cartOpen && (
