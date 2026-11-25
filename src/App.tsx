@@ -555,7 +555,7 @@ function App() {
           <img src="/images/la-villa-logo.jpg" alt="" />
           <span>
             <strong>{restaurantName}</strong>
-            <small>O sabor que conquista</small>
+            <small>Forno a lenha</small>
           </span>
         </a>
         <button className="header-cart-link" type="button" onClick={() => setCartOpen(true)}>
@@ -575,29 +575,23 @@ function App() {
           />
           <div className="hero-shade" />
           <div className="hero-copy">
-            <p className="eyebrow hero-eyebrow">Uma experiência feita para compartilhar</p>
-            <h1 id="hero-title">Uma grande noite começa com uma boa pizza.</h1>
+            <p className="eyebrow">Forno a lenha · Entrega e retirada</p>
+            <h1 id="hero-title">Pizzas de forno a lenha</h1>
             <p className="hero-description">
-              Escolha seus sabores, personalize a borda e monte seu pedido em poucos passos.
+              Monte sua pizza, escolha a borda e envie o pedido pelo WhatsApp.
             </p>
             <div className="hero-actions">
               <a className="button button-primary hero-cta" href="#cardapio">
-                Explorar cardápio <span aria-hidden="true">→</span>
+                Ver cardápio
               </a>
-              <span className="hero-note">Envie seu pedido pelo WhatsApp</span>
             </div>
-            <ul className="hero-highlights" aria-label="Opções para personalizar seu pedido">
-              <li>Combine dois sabores</li>
-              <li>Escolha sua borda</li>
-            </ul>
           </div>
         </section>
 
         <section className="menu-section" id="cardapio">
           <div className="menu-heading">
-            <p className="eyebrow">Feita para abrir o apetite</p>
-            <h2>Sabores para compartilhar</h2>
-            <p>Escolha suas pizzas e bebidas e monte seu pedido pelo WhatsApp.</p>
+            <h2>Cardápio</h2>
+            <p>Pizzas, bebidas e bordas. Pedidos pelo WhatsApp.</p>
           </div>
 
           <nav className="category-nav" aria-label="Categorias do cardápio">
@@ -752,11 +746,11 @@ function App() {
           <img src="/images/la-villa-logo.jpg" alt="" loading="lazy" />
           <span>
             <strong>{restaurantName}</strong>
-            <small>O sabor que conquista</small>
+            <small>Forno a lenha</small>
           </span>
         </a>
-        <a className="footer-menu-link" href="#cardapio">Explorar cardápio <span aria-hidden="true">→</span></a>
-        <p className="footer-note">Envie seu pedido pelo WhatsApp</p>
+        <a className="footer-menu-link" href="#cardapio">Ver cardápio</a>
+        <p className="footer-note">Pedidos pelo WhatsApp</p>
       </footer>
 
       {cartCount > 0 && !cartOpen && (
