@@ -43,6 +43,15 @@ function errorMessage(error: unknown, fallback: string): string {
   return error instanceof Error && error.message ? error.message : fallback;
 }
 
+function formatWhatsapp(number: string): string {
+  const digits = number.replace(/\D/g, "");
+  const local = digits.length === 13 && digits.startsWith("55") ? digits.slice(2) : digits;
+  if (local.length === 11) {
+    return `(${local.slice(0, 2)}) ${local.slice(2, 7)}-${local.slice(7)}`;
+  }
+  return local;
+}
+
 function App() {
   const [catalog, setCatalog] = useState<CatalogData | null>(null);
   const [loading, setLoading] = useState(isSupabaseConfigured);
@@ -356,6 +365,10 @@ function App() {
   function handleAddProduct(product: MenuProduct) {
     const isPizza = categories.find((c) => c.id === product.categoryId)?.kind === "pizza";
     if (isPizza) {
+      if (usableCrusts.length <= 1) {
+        addWholeProduct(product, usableCrusts[0] ?? fallbackCrust);
+        return;
+      }
       setConfiguringPizza({
         type: "whole",
         product,
@@ -555,7 +568,7 @@ function App() {
           <img src="/images/la-villa-logo.jpg" alt="" />
           <span>
             <strong>{restaurantName}</strong>
-            <small>Forno a lenha</small>
+            <small>Entrega e retirada</small>
           </span>
         </a>
         <button className="header-cart-link" type="button" onClick={() => setCartOpen(true)}>
@@ -566,32 +579,10 @@ function App() {
       {storageError && <p className="storage-warning" role="alert">{storageError}</p>}
 
       <main>
-        <section className="hero" aria-labelledby="hero-title">
-          <img
-            className="hero-image"
-            src="/images/hero-forno.jpg"
-            alt="Pizza assando no forno a lenha"
-            fetchPriority="high"
-          />
-          <div className="hero-shade" />
-          <div className="hero-copy">
-            <p className="eyebrow">Forno a lenha · Entrega e retirada</p>
-            <h1 id="hero-title">Pizzas de forno a lenha</h1>
-            <p className="hero-description">
-              Monte sua pizza, escolha a borda e envie o pedido pelo WhatsApp.
-            </p>
-            <div className="hero-actions">
-              <a className="button button-primary hero-cta" href="#cardapio">
-                Ver cardápio
-              </a>
-            </div>
-          </div>
-        </section>
-
         <section className="menu-section" id="cardapio">
           <div className="menu-heading">
-            <h2>Cardápio</h2>
-            <p>Pizzas, bebidas e bordas. Pedidos pelo WhatsApp.</p>
+            <h1>Cardápio</h1>
+            <p>Pizzas e bebidas · Pedido pelo WhatsApp</p>
           </div>
 
           <nav className="category-nav" aria-label="Categorias do cardápio">
@@ -619,7 +610,7 @@ function App() {
                 type="button"
                 onClick={scrollToBeverages}
               >
-                {category.name.includes("🥤") ? category.name : `🥤 ${category.name}`}
+                {category.name}
               </button>
             ))}
           </nav>
@@ -652,10 +643,10 @@ function App() {
                     )}
                     <div className="product-content">
                       <h3>{product.name}</h3>
-                      {product.description && <p>{product.description}</p>}
                       <strong className="product-price">
                         {price === undefined ? "Preço sob consulta" : formatCurrency(toCents(price))}
                       </strong>
+                      {product.description && <p>{product.description}</p>}
                       <div className={isPizza ? "product-actions product-actions-pizza" : "product-actions"}>
                         <button
                           className="button button-primary"
@@ -716,10 +707,10 @@ function App() {
                       )}
                       <div className="product-content">
                         <h3>{product.name}</h3>
-                        {product.description && <p>{product.description}</p>}
                         <strong className="product-price">
                           {price === undefined ? "Preço sob consulta" : formatCurrency(toCents(price))}
                         </strong>
+                        {product.description && <p>{product.description}</p>}
                         <div className="product-actions">
                           <button
                             className="button button-primary"
@@ -746,11 +737,16 @@ function App() {
           <img src="/images/la-villa-logo.jpg" alt="" loading="lazy" />
           <span>
             <strong>{restaurantName}</strong>
-            <small>Forno a lenha</small>
           </span>
         </a>
-        <a className="footer-menu-link" href="#cardapio">Ver cardápio</a>
-        <p className="footer-note">Pedidos pelo WhatsApp</p>
+        <a
+          className="footer-note"
+          href={`https://wa.me/${whatsappNumber}`}
+          target="_blank"
+          rel="noopener noreferrer"
+        >
+          WhatsApp {formatWhatsapp(whatsappNumber)}
+        </a>
       </footer>
 
       {cartCount > 0 && !cartOpen && (
@@ -771,7 +767,6 @@ function App() {
           >
             <div className="dialog-heading">
               <div>
-                <p className="eyebrow">Seu pedido</p>
                 <h2 id="cart-title">Carrinho</h2>
               </div>
               <button className="icon-button" type="button" aria-label="Fechar carrinho" onClick={() => setCartOpen(false)}>×</button>
@@ -857,7 +852,7 @@ function App() {
                   type="button"
                   onClick={() => setConfirmClearOpen(true)}
                 >
-                  🗑️ Limpar Carrinho
+                  Limpar carrinho
                 </button>
               </>
             )}
@@ -876,7 +871,6 @@ function App() {
           >
             <div className="dialog-heading">
               <div>
-                <p className="eyebrow">Só mais um passo</p>
                 <h2 id="checkout-title">Finalizar Pedido</h2>
               </div>
               <button className="icon-button" type="button" aria-label="Fechar" onClick={() => setCheckoutOpen(false)}>×</button>
